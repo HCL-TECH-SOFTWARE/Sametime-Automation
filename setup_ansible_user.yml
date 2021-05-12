@@ -1,0 +1,6 @@
+# setup_ansible_user.yml
+---
+- hosts: masters:workers
+  roles:
+    - role: setup-ansible-user
+      tags: setup-ansible-user

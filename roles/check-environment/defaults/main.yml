@@ -1,0 +1,45 @@
+# main.yml
+---
+# if true, detailed info in assert loops will be printed
+detailed_output: false
+
+tests_vars:
+  - {arg: 'serverHostname', value: '{{ serverHostname }}', test: 'serverHostname is defined and serverHostname | trim | length > 0'}
+  - {arg: 'jwtCookieDomain', value: '{{ jwtCookieDomain }}', test: 'jwtCookieDomain is defined and jwtCookieDomain | trim | length > 0'}
+  - {arg: 'hostIp', value: '{{ hostIp }}', test: 'hostIp is defined and hostIp == "" '}
+
+  - {arg: 'mongo_host', value: '{{ mongo_host }}', test: 'mongo_host is defined and mongo_host | trim | length > 0'}
+  - {arg: 'mongo_port', value: '{{ mongo_port }}', test: 'mongo_port is defined and mongo_port | trim | length > 0'}
+  - {arg: 'mongo_user', value: '{{ mongo_user }}', test: 'mongo_user is defined and mongo_user | trim | length > 0'}
+  - {arg: 'mongo_password', value: '{{ mongo_password }}', test: 'mongo_password is defined and mongo_password | trim | length > 0'}
+
+  - {arg: 'sametime_proxy_host', value: '{{ sametime_proxy_host }}', test: 'sametime_proxy_host is defined and sametime_proxy_host | trim | length > 0'}
+  - {arg: 'sametime_proxy_port', value: '{{ sametime_proxy_port }}', test: 'sametime_proxy_port is defined and sametime_proxy_port | trim | length > 0'}
+
+  - {arg: 'use_letsencypt_staging', value: '{{ use_letsencypt_staging }}', test: '(use_letsencypt_staging is defined) and ((use_letsencypt_staging is sameas true) or (use_letsencypt_staging is sameas false))'}
+
+  - {arg: 'dashboard_expose_type', value: '{{ dashboard_expose_type }}', test: 'dashboard_expose_type is defined and dashboard_expose_type in ["ingress", "loadbalancer" , "none" ]'}
+  - {arg: 'dashboard_assigned_hostname', value: '{{ dashboard_assigned_hostname }}', test: 'dashboard_assigned_hostname is defined and dashboard_assigned_hostname | trim | length > 0'}
+  - {arg: 'dashborad_create_tls_certificate', value: '{{ dashborad_create_tls_certificate }}', test: '(dashborad_create_tls_certificate is defined) and ((dashborad_create_tls_certificate is sameas true) or (dashborad_create_tls_certificate is sameas false))'}
+
+  - {arg: 'elasticsearch_kibana_expose_type', value: '{{ elasticsearch_kibana_expose_type }}', test: 'elasticsearch_kibana_expose_type is defined and elasticsearch_kibana_expose_type in ["ingress", "loadbalancer" , "none" ]'}
+  - {arg: 'elasticsearch_kibana_assigned_hostname', value: '{{ elasticsearch_kibana_assigned_hostname }}', test: 'elasticsearch_kibana_assigned_hostname is defined and elasticsearch_kibana_assigned_hostname | trim | length > 0'}
+  - {arg: 'elasticsearch_kibana_create_tls_certificate', value: '{{ elasticsearch_kibana_create_tls_certificate }}', test: '(elasticsearch_kibana_create_tls_certificate is defined) and ((elasticsearch_kibana_create_tls_certificate is sameas true) or (elasticsearch_kibana_create_tls_certificate is sameas false))'}
+
+  - {arg: 'prometheus_grafana_expose_type', value: '{{ prometheus_grafana_expose_type }}', test: 'prometheus_grafana_expose_type is defined and prometheus_grafana_expose_type in ["ingress", "loadbalancer" , "none" ]'}
+  - {arg: 'prometheus_grafana_assigned_hostname', value: '{{ prometheus_grafana_assigned_hostname }}', test: 'prometheus_grafana_assigned_hostname is defined and prometheus_grafana_assigned_hostname | trim | length > 0'}
+  - {arg: 'prometheus_grafana_create_tls_certificate', value: '{{ prometheus_grafana_create_tls_certificate }}', test: '(prometheus_grafana_create_tls_certificate is defined) and ((prometheus_grafana_create_tls_certificate is sameas true) or (prometheus_grafana_create_tls_certificate is sameas false))'}
+
+  - {arg: 'Server group Masters', value: '{{ groups["masters"] }}', test: '("masters" in groups) and (groups["masters"] | length > 0)'}
+  - {arg: 'Server group Workers', value: '{{ groups["workers"] }}', test: '("workers" in groups) and (groups["workers"] | length > 2)'}
+
+  - {arg: 'add_IPs_into_sametime_manifests', value: '{{ add_IPs_into_sametime_manifests }}', test: '(add_IPs_into_sametime_manifests is defined) and ((add_IPs_into_sametime_manifests is sameas true) or (add_IPs_into_sametime_manifests is sameas false))'}
+  - {arg: 'disable_firewall', value: '{{ disable_firewall }}', test: '(disable_firewall is defined) and ((disable_firewall is sameas true) or (disable_firewall is sameas false))'}
+
+# requires: pip install netaddr on Ansible controler
+#  - {arg: 'mongo_host_ip', value: '{{ mongo_host_ip }}', test: 'mongo_host_ip | ipaddr("bool")'}
+
+tests_nodes:
+  - {arg: 'Operating System', value: '{{ ansible_os_family }} {{ ansible_distribution_major_version }}', test: '(ansible_os_family == "RedHat") and (ansible_distribution_major_version == "7")'}
+  - {arg: 'CPU Cores', value: '{{ ansible_processor_cores }}', test: 'ansible_processor_cores | int >= 2'}
+  - {arg: 'RAM size', value: '{{ ansible_memtotal_mb }} MB', test: 'ansible_memtotal_mb | int >= 10240'}

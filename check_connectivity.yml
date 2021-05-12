@@ -1,0 +1,7 @@
+# check_connectivity.yml
+---
+- hosts: masters:workers
+  vars_files:
+    - vars/vars.yml
+  roles:
+    - role: check-connectivity

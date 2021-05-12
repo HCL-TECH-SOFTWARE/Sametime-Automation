@@ -1,0 +1,38 @@
+# sametime_install.yml
+---
+- name: Generate keys
+  block:
+    - name: Generate keys
+      expect:
+        chdir: '{{ package_unpack_dir }}'
+        command: './generateSecrets.sh'
+        responses:
+          Enter the Base64 encoded JWT_SECRET: ''
+          Enter Mongo Host: '{{ mongo_host }}'
+          Enter Mongo Port: '{{ mongo_port }}'
+          Enter Mongo Admin User Name: '{{ mongo_user }}'
+          Enter Mongo Admin User Password: '{{ mongo_password }}'
+        timeout: 120
+      register: keys_result
+      changed_when: '"created" in keys_result.stdout'
+      failed_when:
+        - '"already added" not in keys_result.stdout'
+        - keys_result.rc != 0
+  rescue:
+    - name: ...handling creation error
+      debug:
+        msg: 'Unable to create keys. Reason: {{ keys_result.stdout }}'
+
+- name: Wait for 1 minute
+  pause:
+    minutes: 1
+
+- name: Install Sametime Meetings
+  command:
+    chdir: '{{ package_unpack_dir }}/helm'
+    cmd: 'helm install sametime-meetings . -n {{ sametime_namespace }} --create-namespace'
+  register: sametime_install_result
+  changed_when: '"STATUS: deployed" in sametime_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in sametime_install_result.stderr'
+    - sametime_install_result.rc != 0

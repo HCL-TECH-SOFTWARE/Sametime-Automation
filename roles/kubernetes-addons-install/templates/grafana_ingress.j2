@@ -1,0 +1,27 @@
+# grafana-ingress.j2
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: grafana
+  annotations:
+    kubernetes.io/ingress.class: {{ ingress_internal_class }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: {{ issuer_name }}
+  namespace: {{ monitoring_namespace }}
+spec:
+{% if prometheus_grafana_create_tls_certificate %}
+  tls:
+  - hosts:
+    - {{ prometheus_grafana_assigned_hostname }}
+    secretName: grafana-tls-certificate
+{% endif %}
+  rules:
+  - host: {{ prometheus_grafana_assigned_hostname }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ service_name }}
+          servicePort: {{ service_port }}

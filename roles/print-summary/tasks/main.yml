@@ -1,0 +1,37 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Print Summary] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Get Ingress info
+  import_tasks: get_ingress_info.yml
+
+- name: Get Kubernetes Dashboard info
+  import_tasks: get_dashboard_info.yml
+
+- name: Get Kibana info
+  import_tasks: get_kibana_info.yml
+
+- name: Get Grafana info
+  import_tasks: get_grafana_info.yml
+
+- name: Get certificates info
+  import_tasks: get_certificate_info.yml
+
+- name: Print summary report
+  import_tasks: print_summary.yml
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Print Summary] Ending'
+  include_role:
+    name: common
+    tasks_from: log

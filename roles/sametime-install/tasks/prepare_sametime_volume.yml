@@ -1,0 +1,8 @@
+# prepare_sametime_volume.yml
+---
+- name: Create directory for storing Sametime recordings (only on Sametime_recording node)
+  become: true
+  file:
+    path: '{{ sametime_volume_dir }}'
+    state: directory
+    mode: u=rwx,g=rwx,o=rwx

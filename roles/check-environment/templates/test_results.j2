@@ -1,0 +1,17 @@
+Parameters that PASSED the test:
+-------------------------------
+{% for item in success_list %}
+✔️  [{{ node }}] {{ item.parameter + ': ' + item.value|string }}
+{% endfor %}
+{% if success_list == [] %}
+(nothing, all failed)
+{% endif %}
+
+Parameters that FAILED the test:
+-------------------------------
+{% for item in fail_list %}
+❌  [{{ node }}] {{ item.parameter + ': ' + item.value|string }}
+{% endfor %}
+{% if fail_list == [] %}
+(nothing, all succeeded)
+{% endif %}

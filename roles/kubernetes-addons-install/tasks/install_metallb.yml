@@ -1,0 +1,59 @@
+# install_metallb.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - MetalLB] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# -------------- Install MetalLB --------------
+
+- name: Create a namespace for MetalLB
+  command:
+    cmd: 'kubectl apply -f {{ metallb_namespace_manifest }}'
+  register: metallb_namespace_result
+  changed_when: '"created" in metallb_namespace_result.stdout'
+
+- name: Install MetalLB
+  command:
+    cmd: 'kubectl apply -f {{ metallb_install_manifest }}'
+  register: metallb_install_result
+  changed_when: '"created" in metallb_install_result.stdout'
+
+- name: Generate secret for MetalLB (should run only once)
+  command:
+    cmd: 'kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"'
+  register: metallb_secret_result
+  changed_when: '"created" in metallb_secret_result.stdout'
+  failed_when:
+    - '"already exists" not in metallb_secret_result.stderr'
+    - metallb_secret_result.rc == 1
+
+- name: Copy configmap for MetalLB (IP range for external addresses)
+  template:
+    src: metallb_ip_range.j2
+    dest: '{{ package_unpack_dir }}metallb_ip_range.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Install configmap for MetalLB
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f ./metallb_ip_range.yml'
+  register: metallb_configmap_result
+  changed_when: '"created" in metallb_configmap_result.stdout'
+
+- name: Delete temporary configmap file
+  file:
+    path: '{{ package_unpack_dir }}metallb_ip_range.yml'
+    state: absent
+  ignore_errors: true
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - MetalLB] Ending'
+  include_role:
+    name: common
+    tasks_from: log

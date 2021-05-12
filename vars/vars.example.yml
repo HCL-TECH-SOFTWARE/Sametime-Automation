@@ -1,0 +1,96 @@
+# vars.yml
+---
+# Set these variables according to your environment
+
+# -------------- Parameters for EXISTING environment --------------
+# -------------- These servers should be already installed --------------
+
+# Used in: setup_hosts
+mongo_host_ip: '192.168.10.138'
+sametime_proxy_host_ip: '192.168.10.138'
+
+# Used in:  sametime_install (generateSecrets.sh)
+mongo_host: 'orion.petrkunc.net'
+mongo_port: '27017'
+mongo_user: 'sametimeUser'
+mongo_password: 'sametime'
+
+# Used in: prepare_install_package
+sametime_proxy_host: 'webchat.petrkunc.net'
+sametime_proxy_port: '8443'
+
+
+# -------------- Parameters for NEW environment --------------
+# -------------- These servers will be installed by the script --------------
+
+# IP Address of Kubernetes API Server (= Master node)
+# Use it when there are multiple network interfaces on your Master node, and you want to select
+# the specific one for cluster communication.
+# If you do not have problems with Kubernetes cluster initialization, keep it empty.
+# Used in: kubernetes-install
+kubernetes_apiserver_ip: '192.168.10.140'
+
+# For each service, you have to choose how it will be exposed outside the Kubernetes cluster.
+# You have two options: via Ingress or via Load Balancer.
+#
+#   * If you choose Ingress, then the service will use the IP address of Ingress and
+#     you have to specify a unique hostname for this service.
+#     Without this hostname, a service could be inaccessible because multiple services
+#     are exposed through this Ingress IP address, and hostname is a way how to distinguish them.
+#
+#   * If you choose Load Balancer, then each service will obtain a unique IP address
+#     from the Load Balancer pool of IP addresses. You do not need to specify a dedicated hostname
+#     for such service in this config file because the hostname will not be used in the script.
+#     You can access the service via IP address or via hostname.
+#
+# In all cases, in your DNS server configuration, you have to set resolving
+# from hostname to IP address for ALL services. Otherwise, they will not be accessible
+# for users.
+#   (example: meetings.company.com resolves to sametime_meetings_assigned_ip_address).
+
+# Used in: kubernetes_addons_install
+metallb_ip_range: '192.168.10.150-192.168.10.160'
+# This is the pool of IP addresses used by MetalLB for assigning external addresses
+# to services with expose type = loadbalancer.
+# Usually, they are from the same network as IP addresses for nodes (virtual machines with Linux),
+# but they cannot overlap! MetelLB IP range must have only unoccupied addresses.
+
+# Select whether the script will obtain TLS certificates from Let's Encrypt Staging or Production Certificate Authority.
+# Always start with Staging. Once Staging works, switch here to Production (set variable to false)
+use_letsencypt_staging: false
+
+# Sametime Meetings is always exposed via Ingress. You cannot change the expose type.
+sametime_meetings_assigned_ip_address: '192.168.10.155'
+
+# IP address for the second Ingress (internal services)
+ingress_internal_assigned_ip_address: '192.168.10.156'
+
+dashboard_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
+dashboard_assigned_ip_address: '192.168.10.157'     ## used only for type loadbalancer
+dashboard_assigned_hostname: 'dashboard.petrkunc.net'     ## used only for type ingress
+dashborad_create_tls_certificate: true                    ## used only for type ingress
+
+elasticsearch_kibana_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
+elasticsearch_kibana_assigned_ip_address: '192.168.10.158'    ## used only for type loadbalancer
+elasticsearch_kibana_assigned_hostname: 'logging.petrkunc.net'     ## used only for type ingress
+elasticsearch_kibana_create_tls_certificate: true            ## used only for type ingress
+
+prometheus_grafana_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
+prometheus_grafana_assigned_ip_address: '192.168.10.159'    ## used only for type loadbalancer
+prometheus_grafana_assigned_hostname: 'monitoring.petrkunc.net'     ## used only for type ingress
+prometheus_grafana_create_tls_certificate: false            ## used only for type ingress
+
+
+# When Sametime Proxy or MongoDB hostnames are resolvable only through local hosts files you have to set
+# this paramter to 'true'. It will then add hostnames and IPs (from vars/vars.yml) into Sametime Meetings Helm charts.
+# More info: https://help.hcltechsw.com/sametime/11.5/admin/t_meetings_kubernetes.html
+# Used in: prepare_install_package
+add_IPs_into_sametime_manifests: false
+
+# Used in: prepare_install_package, print_summary
+serverHostname: 'meetings.petrkunc.net'
+jwtCookieDomain: 'petrkunc.net'
+hostIp: ''        ## keep empty
+
+# Used in: prepare-server
+disable_firewall: true              ## current version tested only with 'true', which means disabled firewall

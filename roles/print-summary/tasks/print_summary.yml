@@ -1,0 +1,14 @@
+# print_summary.yml
+---
+# -------------- Compose final report --------------
+
+- name: Store summary as a text file on a local workstation
+  local_action:
+    module: template
+    src: report.j2
+    dest: './summary_report.txt'
+    mode: u=rw,g=r,o=r
+
+- name: Show summary on the screen
+  debug:
+    msg: "{{ lookup('template', 'report.j2') }}"

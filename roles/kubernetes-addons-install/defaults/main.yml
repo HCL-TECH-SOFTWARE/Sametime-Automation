@@ -1,0 +1,40 @@
+# main.yml
+---
+# cert-manager parameters
+certmgr_repository: 'https://charts.jetstack.io'
+staging_issuer_server: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+production_issuer_server: 'https://acme-v02.api.letsencrypt.org/directory'
+certmgr_email: 'petr.kunc@gmail.com'
+
+issuers_combinations:
+  - { issuer_env: 'staging',
+      ingress_class: 'nginx-internal' }
+  - { issuer_env: 'production',
+      ingress_class: 'nginx-internal' }
+  - { issuer_env: 'staging',
+      ingress_class: 'nginx' }
+  - { issuer_env: 'production',
+      ingress_class: 'nginx' }
+
+# Ingress parameters
+ingress_repository: 'https://kubernetes.github.io/ingress-nginx'
+ingress_class: 'nginx'
+ingress_internal_class: 'nginx-internal'
+
+# Dashboard parameters
+kubernetes_dashboard_manifest: 'https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml'
+helm_install_file: 'https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3'
+
+# MetalLB parameters
+metallb_namespace_manifest: 'https://raw.githubusercontent.com/metallb/metallb/main/manifests/namespace.yaml'
+metallb_install_manifest: 'https://raw.githubusercontent.com/metallb/metallb/main/manifests/metallb.yaml'
+
+# Ingress parameters
+ingress_cluster_install_manifest: 'https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud/deploy.yaml'
+
+# EFK parameters
+elastic_pv_manifest: 'kubernetes/logging/logging-pv.yaml'
+elasticsearch_cloud_manifest: 'https://raw.githubusercontent.com/elastic/cloud-on-k8s/master/config/recipes/beats/filebeat_autodiscover.yaml'
+
+# Prometheus parameters
+prometheus_repository: 'https://prometheus-community.github.io/helm-charts'

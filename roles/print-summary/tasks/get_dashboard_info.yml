@@ -1,0 +1,28 @@
+# get_dashboard_info.yml
+---
+# -------------- Gathering info for Dashboard --------------
+
+- name: Get Dashboard service name
+  command:
+    cmd: 'kubectl get service --selector="k8s-app=kubernetes-dashboard" -A -ojsonpath="{.items..metadata.name}"'
+  register: dashboard_service_name
+
+- name: Get Dashboard External IP address
+  command:
+    cmd: 'kubectl get service -n {{ dashboard_namespace }} {{ dashboard_service_name.stdout }} -ojsonpath="{.status.loadBalancer.ingress[0].ip}"'
+  register: dashboard_external_ip
+
+- name: Get Dashboard External port
+  command:
+    cmd: 'kubectl get service -n {{ dashboard_namespace }} {{ dashboard_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}"'
+  register: dashboard_external_port
+
+- name: Get Dashboard secret
+  shell:
+    cmd: 'kubectl get serviceaccount -n {{ dashboard_namespace }} {{ dashboard_secret_name }} -o jsonpath="{.secrets[0].name}"'
+  register: dashboard_admin_secret
+
+- name: Get Dashboard token
+  shell:
+    cmd: 'kubectl get secret -n {{ dashboard_namespace }} {{ dashboard_admin_secret.stdout }} -o jsonpath="{.data.token}" | base64 --decode'
+  register: dashboard_admin_token

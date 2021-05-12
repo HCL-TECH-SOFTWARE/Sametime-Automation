@@ -1,0 +1,50 @@
+# check_vars.yml
+---
+- name: Assert values in vars.yml
+  assert:
+    that: '{{ item.test }}'
+    fail_msg: 'Parameter "{{ item.arg }}" with value "{{ item.value }}" FAILED assertion tests!'
+    success_msg: 'Parameter "{{ item.arg }}" with value "{{ item.value }}" passed assertion tests.'
+  register: tests_vars_results
+  when: tests_vars is defined and tests_vars | length > 0
+  loop: '{{ tests_vars }}'
+  ignore_errors: true
+  no_log: '{{ not (detailed_output | default(false)) }}'
+
+#- name: Debug results Jinja
+#  debug:
+#    msg: "{% for item in tests_vars_results.results %}{{ item.item.arg + ' - ' + item.msg + '\n'}}{% endfor %}"
+
+- name: Store passed results for vars
+  vars:
+    new_entry:
+      parameter: '{{ item.item.arg }}'
+      value: '{{ item.item.value }}'
+  set_fact:
+    success_test_vars_results: '{{ (success_test_vars_results | default([])) + [ new_entry ] }}'
+  loop: '{{ tests_vars_results.results }}'
+  when: not item.failed
+  no_log: '{{ not (detailed_output | default(false)) }}'
+
+- name: Store failed results for vars
+  vars:
+    new_entry:
+      parameter: '{{ item.item.arg }}'
+      value: '{{ item.item.value }}'
+  set_fact:
+    fail_test_vars_results: '{{ (fail_test_vars_results | default([])) + [ new_entry ] }}'
+  loop: '{{ tests_vars_results.results }}'
+  when: item.failed
+  no_log: '{{ not (detailed_output | default(false)) }}'
+
+- name: Print test final report for vars
+  vars:
+    node: 'global'
+    success_list: '{{ success_test_vars_results | default([]) }}'
+    fail_list: '{{ fail_test_vars_results | default([]) }}'
+  debug:
+    msg: "{{ lookup('template', './test_results.j2') }}"
+
+- name: Count number of failed tests for vars
+  set_fact:
+    fail_test_vars_results_count: '{{ fail_test_vars_results | default([]) | length }}'

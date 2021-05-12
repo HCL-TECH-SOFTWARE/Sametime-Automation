@@ -1,0 +1,6 @@
+# main.yml
+---
+# Sametime parameters
+sametime_pv_class_manifest: 'kubernetes/storage/single-node/storage-class.yaml'
+sametime_pv_manifest: 'kubernetes/storage/single-node/peristent-volume.yaml'
+sametime_pv_claim_manifest: 'kubernetes/storage/single-node/peristent-volume-claim.yaml'

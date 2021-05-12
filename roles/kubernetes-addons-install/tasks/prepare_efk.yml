@@ -1,0 +1,26 @@
+# prepare_efk.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Preapre EFK] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Create directory for storing Elasticsearch data (only on Elasticsearch node)
+  become: true
+  file:
+    path: '{{ elastic_volume_dir }}'
+    state: directory
+    mode: u=rwx,g=rwx,o=rwx
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Prepare EFK] Ending'
+  include_role:
+    name: common
+    tasks_from: log

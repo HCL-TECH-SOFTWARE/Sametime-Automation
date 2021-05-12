@@ -1,0 +1,50 @@
+# kubernetes_prepare_redhat.yml
+---
+- name: Disable swap
+  become: true
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Remove swap from /etc/fstab
+  become: true
+  mount:
+    name: swap
+    fstype: swap
+    state: absent
+
+- name: Setup traffic routing
+  become: true
+  sysctl:
+    name: '{{ item }}'
+    value: '1'
+    sysctl_set: true
+    reload: true
+  loop:
+    - 'net.bridge.bridge-nf-call-iptables'
+    - 'net.bridge.bridge-nf-call-ip6tables'
+    - 'net.ipv4.ip_forward'
+
+- name: Add Kubernetes GPG keys
+  become: true
+  rpm_key:
+    key: '{{ item }}'
+    state: present
+  loop: '{{ kubernetes_yum_gpg_keys }}'
+
+- name: Add Kubernetes repository (yum)
+  become: true
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes
+    baseurl: '{{ kubernetes_yum_repo_url }}'
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    gpgkey: '{{ kubernetes_yum_gpg_keys }}'
+    exclude: '{{ kubernetes_packages }}'
+
+- name: Update rpm cache after key import (yum)
+  become: true
+  command: 'yum makecache -y'
+  args:
+    warn: false

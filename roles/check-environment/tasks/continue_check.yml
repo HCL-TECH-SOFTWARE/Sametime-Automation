@@ -1,0 +1,16 @@
+# continue_check.yml
+---
+- name: Debug
+  debug:
+    msg:
+      - '{{ hostvars.master.prompt_result.user_input }}'
+      - '{{ hostvars.master.fail_test_vars_results_count }}'
+      - '{{ hostvars.master.fail_test_node_results_total_count }}'
+  when:
+    - (hostvars.master.fail_test_vars_results_count | int > 0) or (hostvars.master.fail_test_node_results_total_count | int > 0)
+
+- name: Abort when user decides to not continue
+  fail:
+  when:
+    - (hostvars.master.fail_test_vars_results_count | int > 0) or (hostvars.master.fail_test_node_results_total_count | int > 0)
+    - hostvars.master.prompt_result.user_input | upper == 'N'

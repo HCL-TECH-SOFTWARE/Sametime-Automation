@@ -1,0 +1,4 @@
+# main.yml
+---
+- name: Setup hosts file
+  import_tasks: setup_hosts_file.yml

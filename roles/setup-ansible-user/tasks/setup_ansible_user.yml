@@ -1,0 +1,22 @@
+# setup_ansible_user.yml
+# This playbook should be run with ansible_user=root
+---
+- name: Create Ansible user
+  user:
+    name: '{{ my_ansible_user_name }}'
+    password: '{{ my_ansible_user_password | password_hash("sha512") }}'
+    shell: /bin/bash
+    append: yes
+
+- name: Allow Ansible user to sudo without a password
+  lineinfile:
+    path: '/etc/sudoers'
+    state: present
+    regexp: '^{{ my_ansible_user_name }}'
+    line: '{{ my_ansible_user_name }} ALL=(ALL) NOPASSWD: ALL'
+
+- name: Copy ssh keys for Ansible user
+  authorized_key:
+    user: '{{ my_ansible_user_name }}'
+    key: '{{ lookup("file", "~/.ssh/id_rsa.pub") }}'
+    state: present

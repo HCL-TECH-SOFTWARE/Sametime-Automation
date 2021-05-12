@@ -1,0 +1,59 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Install Helm
+  include_tasks: install_helm.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: helm
+
+- name: Install cert-manager
+  include_tasks: install_certmgr.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: certmgr
+
+- name: Install MetalLB
+  include_tasks: install_metallb.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: ingress
+
+- name: Install Ingress
+  include_tasks: install_ingress.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: ingress
+
+- name: Install Kubernetes Dashboard
+  include_tasks: install_dashboard.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: dashboard
+
+- name: Prepare for Elasticsearch and Kibana
+  include_tasks: prepare_efk.yml
+  when: inventory_hostname in groups['elasticsearch']
+  tags: efk
+
+- name: Install Elasticsearch and Kibana
+  include_tasks: install_logging.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: efk
+
+- name: Install Prometheus and Grafana
+  include_tasks: install_monitoring.yml
+  when: inventory_hostname == groups['masters'][0]
+  tags: prometheus
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kuberneets Add-ons Install] Ending'
+  include_role:
+    name: common
+    tasks_from: log

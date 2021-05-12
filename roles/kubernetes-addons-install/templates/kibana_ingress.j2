@@ -1,0 +1,28 @@
+# kibana-ingress.j2
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana
+  annotations:
+    kubernetes.io/ingress.class: {{ ingress_internal_class }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    cert-manager.io/cluster-issuer: {{ issuer_name }}
+  namespace: default
+spec:
+{% if elasticsearch_kibana_create_tls_certificate %}
+  tls:
+  - hosts:
+    - {{ elasticsearch_kibana_assigned_hostname }}
+    secretName: kibana-tls-certificate
+{% endif %}
+  rules:
+  - host: {{ elasticsearch_kibana_assigned_hostname }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ service_name }}
+          servicePort: {{ service_port }}

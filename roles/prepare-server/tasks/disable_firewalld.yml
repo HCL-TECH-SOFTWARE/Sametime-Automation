@@ -1,0 +1,14 @@
+# disable_firewalld.yml
+---
+- name: Install firewalld
+  become: true
+  package:
+    name: firewalld
+    state: present
+
+- name: Stop and disable firewalld service
+  become: true
+  service:
+    name: firewalld
+    state: stopped
+    enabled: false

@@ -1,0 +1,37 @@
+# install_sametime.yml
+---
+- name: Create namespace for Sametime
+  command:
+    cmd: 'kubectl create namespace {{ sametime_namespace }}'
+  register: sametime_namespace_result
+  changed_when: '"created" in sametime_namespace_result.stdout'
+  failed_when:
+    - '"already exists" not in sametime_namespace_result.stderr'
+    - sametime_namespace_result.rc != 0
+
+- name: Create Storage class for Sametime
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f {{ sametime_pv_class_manifest }}'
+  register: sametime_storageclass_result
+  changed_when: '"created" in sametime_storageclass_result.stdout'
+
+- name: Create Persistent Volume for Sametime
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl create -f {{ sametime_pv_manifest }}'
+  register: sametime_pv_result
+  changed_when: '"created" in sametime_pv_result.stdout'
+  failed_when:
+    - '"already exists" not in sametime_pv_result.stderr'
+    - sametime_pv_result.rc != 0
+
+- name: Create Persistent Volume Claim for Sametime
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl create -f {{ sametime_pv_claim_manifest }} -n {{ sametime_namespace }}'
+  register: sametime_pvc_result
+  changed_when: '"created" in sametime_pvc_result.stdout'
+  failed_when:
+    - '"already exists" not in sametime_pvc_result.stderr'
+    - sametime_pvc_result.rc != 0

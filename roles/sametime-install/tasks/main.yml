@@ -1,0 +1,34 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Sametime Install] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Prepare directory for Sametime Persistent Volume
+  import_tasks: prepare_sametime_volume.yml
+  when: inventory_hostname == groups['sametime_recording'][0]
+
+- name: Create Persistent Volume for Sametime
+  import_tasks: sametime_volume.yml
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Prepare Sametime images on each node
+  import_tasks: sametime_images.yml
+
+- name: Install Sametime Meetings
+  import_tasks: sametime_install.yml
+  when: inventory_hostname == groups['masters'][0]
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Sametime Install] Ending'
+  include_role:
+    name: common
+    tasks_from: log

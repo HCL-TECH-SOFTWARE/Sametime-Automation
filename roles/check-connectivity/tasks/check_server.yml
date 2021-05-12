@@ -1,0 +1,15 @@
+# check_server.yml
+---
+- name: 'Connect to the server: {{ server }}'
+  block:
+    - name: 'Connect to the server: {{ server }}'
+      wait_for:
+        host: '{{ hostvars[server].ansible_host }}'
+        port: 22
+        state: started
+        delay: 0
+        timeout: 3
+  rescue:
+    - name: ...handling connection error
+      debug:
+        msg: 'FAILED: Cannot connect to server {{ server }} on address {{ hostvars[server].ansible_host }}:22'

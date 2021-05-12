@@ -1,0 +1,5 @@
+# main.yml
+---
+dashboard_secret_name: 'admin-user'
+kibana_admin_id: 'elastic'
+grafana_admin_id: 'admin'

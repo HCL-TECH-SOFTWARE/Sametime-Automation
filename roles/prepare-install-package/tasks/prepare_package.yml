@@ -1,0 +1,68 @@
+# main.yml
+---
+# -------------- Fix default manifest for Sametime --------------
+
+- name: Update hostname Persistent Volume manifest for Sametime
+  vars:
+    sametime_host: "{{ groups['sametime_recording'][0] }}"
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_pv_manifest }}'
+    regexp: 'REPLACE_WITH_NODE_NAME'
+    replace: '{{ hostvars[sametime_host].ansible_host }}'
+
+- name: Update path Persistent Volume manifest for Sametime
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_pv_manifest }}'
+    regexp: '/mnt/disk/vol1'
+    replace: '{{ sametime_volume_dir }}'
+
+# -------------- Fill config values from vars/vars.yml --------------
+
+- name: Fill in Sametime environment variables (1/5)
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: 'YOUR_SERVER_NAME'
+    replace: '{{ serverHostname }}'
+
+- name: Fill in Sametime environment variables (2/5)
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: 'YOUR_DOMAIN_NAME'
+    replace: '{{ jwtCookieDomain }}'
+
+- name: Fill in Sametime environment variables (3/5)
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: 'YOUR_HOST_IP_ADDRESS'
+    replace: '{{ hostIp }}'
+
+- name: Fill in Sametime environment variables (4/5)
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: 'YOUR_SAMEIME_PROXY_HOST'
+    replace: '{{ sametime_proxy_host }}'
+
+- name: Fill in Sametime environment variables (5/5)
+  replace:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: 'YOUR_SAMETIME_PROXY_PORT'
+    replace: '{{ sametime_proxy_port }}'
+
+# -------------- Update values.yml for a simple deployment  --------------
+- name: Comment out custom node names in values.yaml
+  lineinfile:
+    path: '{{ package_unpack_dir }}{{ sametime_values_file }}'
+    regexp: '{{ item }}'
+    line: '#{{ item }}'
+  loop:
+    - '  recorderNodeRole: recorder'
+    - '  videoNodeRole: video'
+    - '  mainNodeRole: main'
+
+- name: Add hosts to Sametime Meetings Helm charts
+  blockinfile:
+    path: '{{ package_unpack_dir }}{{ item }}'
+    insertafter: 'restartPolicy: Always'
+    block: '{{ hosts_in_chart }}'
+  loop: '{{ charts_to_update }}'
+  when: add_IPs_into_sametime_manifests

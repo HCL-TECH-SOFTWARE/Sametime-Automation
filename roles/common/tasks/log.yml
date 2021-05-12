@@ -1,0 +1,18 @@
+# log.yml
+---
+- name: Get current timestamp
+  local_action:
+    module: command
+    cmd: date "+%Y-%m-%d %H:%M:%S"
+  register: timestamp
+  run_once: true
+  no_log: true
+
+- name: Log progress into local log
+  local_action:
+    module: lineinfile
+    path: '{{ ansible_script_log_file }}'
+    line: '{{ timestamp.stdout }} {{ log_message }}'
+    create: true
+  run_once: true
+  no_log: true

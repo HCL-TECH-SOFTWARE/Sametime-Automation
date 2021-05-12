@@ -1,0 +1,30 @@
+# main.yml
+---
+- name: Print info
+  debug:
+    msg: 'Unpacking HCL Sametime Meetings install package: {{ package_dir }}{{ package_filename }} to {{ package_unpack_dir }}'
+
+- name: Install unzip
+  become: true
+  package:
+    name: unzip
+    state: latest
+
+- name: Check if the package is already unzipped
+  stat:
+    path: '{{ package_unpack_dir }}sametime_meetings.tar'
+  register: install_file
+
+- name: Create unpack directory
+  file:
+    path: '{{ package_unpack_dir }}'
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+  when: not install_file.stat.exists
+
+- name: Unzip package
+  unarchive:
+    src: '{{ package_dir }}{{ package_filename }}'
+    dest: '{{ package_unpack_dir }}'
+  throttle: 1
+  when: not install_file.stat.exists

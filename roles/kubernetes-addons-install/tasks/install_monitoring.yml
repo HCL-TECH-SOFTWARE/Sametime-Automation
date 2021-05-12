@@ -1,0 +1,115 @@
+# install_monitoring.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Monitoring] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# -------------- Install Prometheus Operator --------------
+
+- name: Add Helm repository for Prometeus Operator
+  command:
+    cmd: 'helm repo add prometheus-community {{ prometheus_repository }}'
+  register: monitoring_operator_helm_result
+  changed_when: '"has been added" in monitoring_operator_helm_result.stdout'
+
+- name: Update Helm repositories
+  command:
+    cmd: 'helm repo update'
+
+- name: Install Prometheus Operator
+  command:
+    cmd: 'helm install prometheus prometheus-community/kube-prometheus-stack -n {{ monitoring_namespace }} --create-namespace'
+  register: monitoring_operator_install_result
+  changed_when: '"STATUS: deployed" in monitoring_operator_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in monitoring_operator_install_result.stderr'
+    - monitoring_operator_install_result.rc != 0
+
+- name: Get Grafana service name
+  command:
+    cmd: 'kubectl get service --selector="app.kubernetes.io/name=grafana" -A -ojsonpath="{.items..metadata.name}" -n {{ monitoring_namespace }}'
+  register: grafana_service_name
+  when: (prometheus_grafana_expose_type == 'loadbalancer') or
+        (prometheus_grafana_expose_type == 'ingress')
+
+# -------------- Patch Prometheus/Grafana with external IP address (expose type = loadbalancer) --------------
+
+- name: Copy patch file for Grafana IP assignement
+  template:
+    src: grafana_ip_patch.j2
+    dest: '{{ package_unpack_dir }}grafana_ip_patch.yml'
+    mode: u=rw,g=r,o=r
+  when: prometheus_grafana_expose_type == 'loadbalancer'
+
+- name: Assign dedicated IP address for Grafana
+  shell:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl patch service {{ grafana_service_name.stdout }} -p "$(cat grafana_ip_patch.yml)" -n {{ monitoring_namespace }}'
+  register: grafana_ip_result
+  changed_when:
+    - '"patched" in grafana_ip_result.stdout'
+    - 'not "(no change)" in grafana_ip_result.stdout'
+  when: prometheus_grafana_expose_type == 'loadbalancer'
+
+- name: Delete temporary Grafana patch file
+  file:
+    path: '{{ package_unpack_dir }}grafana_ip_patch.yml'
+    state: absent
+  ignore_errors: true
+  when: prometheus_grafana_expose_type == 'loadbalancer'
+
+# -------------- Apply Ingress rule for Kibana (expose type = ingress) --------------
+
+- name: Get Grafana External port
+  command:
+    cmd: 'kubectl get service {{ grafana_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}" -n {{ monitoring_namespace }}'
+  register: grafana_external_port
+  when: prometheus_grafana_expose_type == 'ingress'
+
+- name: Copy ingress resource file for Grafana
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+    issuer_name: 'letsencrypt-{{ issuer_env }}-{{ ingress_internal_class }}-cluster-issuer'
+    service_name: '{{ grafana_service_name.stdout }}'
+    service_port: '{{ grafana_external_port.stdout }}'
+  template:
+    src: grafana_ingress.j2
+    dest: '{{ package_unpack_dir }}grafana_ingress.yml'
+    mode: u=rw,g=r,o=r
+  when: prometheus_grafana_expose_type == 'ingress'
+
+- name: Apply ingress resource file for Grafana
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f grafana_ingress.yml'
+  register: ingress_grafana_result
+  changed_when: '"created" in ingress_grafana_result.stdout'
+  when: prometheus_grafana_expose_type == 'ingress'
+
+- name: Delete temporary Grafana ingress file
+  file:
+    path: '{{ package_unpack_dir }}grafana_ingress.yml'
+    state: absent
+  ignore_errors: true
+  when: prometheus_grafana_expose_type == 'ingress'
+
+- name: Set cluster type to ClusterIP for Grafana
+  vars:
+    service_name: '{{ grafana_service_name.stdout }}'
+  command:
+    cmd: kubectl patch service {{ service_name }} -p '{"spec":{"type":"ClusterIP"}}' -n {{ monitoring_namespace }}
+  register: grafana_cluster_type_result
+  changed_when: '"created" in grafana_cluster_type_result.stdout'
+  when: prometheus_grafana_expose_type == 'ingress'
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Monitoring] Ending'
+  include_role:
+    name: common
+    tasks_from: log

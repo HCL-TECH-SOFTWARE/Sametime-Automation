@@ -1,0 +1,100 @@
+# install_ingress.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Ingress] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# -------------- Install two Ingress controllers --------------
+
+- name: Add Helm repository for Ingress-Nginx
+  command:
+    cmd: 'helm repo add ingress-nginx {{ ingress_repository }}'
+  register: ingress_helm_result
+  changed_when: '"has been added" in ingress_helm_result.stdout'
+
+- name: Update Helm repositories
+  command:
+    cmd: 'helm repo update'
+
+- name: Install the first Ingress-Nginx (default ingressClass).
+  command:
+    cmd: >
+      helm install {{ ingress_service }} ingress-nginx/ingress-nginx
+      -n {{ ingress_namespace }}
+      --create-namespace
+  register: ingress_install_result
+  changed_when: '"STATUS: deployed" in ingress_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in ingress_install_result.stderr'
+    - ingress_install_result.rc != 0
+
+- name: Install the second Ingress-Nginx (ingressClass=nginx-internal)
+  command:
+    cmd: >
+      helm install {{ ingress_internal_service }} ingress-nginx/ingress-nginx
+      --set controller.ingressClass=nginx-internal
+      -n {{ ingress_internal_namespace }}
+      --create-namespace
+  register: ingress_internal_install_result
+  changed_when: '"STATUS: deployed" in ingress_internal_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in ingress_internal_install_result.stderr'
+    - ingress_internal_install_result.rc != 0
+
+# -------------- Patch default Ingress --------------
+
+- name: Copy patch file for Ingress IP assignement
+  template:
+    src: ingress_ip_patch.j2
+    dest: '{{ package_unpack_dir }}ingress_ip_patch.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Assign dedicated IP address for Ingress
+  shell:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl patch service {{ ingress_service }}-controller -p "$(cat ingress_ip_patch.yml)" -n {{ ingress_namespace }}'
+  register: ingress_ip_result
+  changed_when:
+    - '"patched" in ingress_ip_result.stdout'
+    - 'not "(no change)" in ingress_ip_result.stdout'
+
+- name: Delete temporary Ingress patch file
+  file:
+    path: '{{ package_unpack_dir }}ingress_ip_patch.yml'
+    state: absent
+  ignore_errors: true
+
+# -------------- Patch internal Ingress --------------
+
+- name: Copy patch file for internal Ingress IP assignement
+  template:
+    src: ingress_internal_ip_patch.j2
+    dest: '{{ package_unpack_dir }}ingress_internal_ip_patch.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Assign dedicated IP address for internal Ingress
+  shell:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl patch service {{ ingress_internal_service }}-controller -p "$(cat ingress_internal_ip_patch.yml)" -n {{ ingress_internal_namespace }}'
+  register: ingress_internal_ip_result
+  changed_when:
+    - '"patched" in ingress_internal_ip_result.stdout'
+    - 'not "(no change)" in ingress_internal_ip_result.stdout'
+
+- name: Delete temporary internal Ingress patch file
+  file:
+    path: '{{ package_unpack_dir }}ingress_internal_ip_patch.yml'
+    state: absent
+  ignore_errors: true
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Ingress] Ending'
+  include_role:
+    name: common
+    tasks_from: log

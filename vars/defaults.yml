@@ -1,0 +1,44 @@
+# defaults.yml
+---
+# This faile contains default values used in multiple roles
+
+# Name of the file where the script logs its progress.
+# Stored only on Admin workstation (= where the script is launched)
+# Used in: almost all roles
+ansible_script_log_file: './install.log'
+
+# Cert Manager parameters
+# Used in: kubernetes_addons_install
+certmgr_namespace: 'cert-manager'
+
+# Ingress parameters
+# Used in: kubernetes_addons_install, print_summary
+ingress_namespace: 'ingress-nginx'
+ingress_service: 'ingress-nginx'
+ingress_internal_namespace: 'ingress-nginx-internal'
+ingress_internal_service: 'ingress-nginx-internal'
+
+# Dashboard parameters
+# Used in: kubernetes_addons_install, print_summary
+dashboard_namespace: 'kubernetes-dashboard'
+
+# Logging parameters
+# Used in: kubernetes_addons_install, print_summary
+logging_namespace: 'logging'
+elastic_volume_dir: '/mnt/disk/elasticsearch'
+
+# Monitoring parameters
+# Used in: kubernetes_addons_install, print_summary
+monitoring_namespace: 'monitoring'
+
+# Sametime parameters
+# Used in: prepare_install_package, sametime_install
+sametime_namespace: 'sametime'
+sametime_volume_dir: '/mnt/disk/sametime'
+sametime_values_file: 'helm/values.yaml'
+
+# Path on Admin workstation computer
+package_dir: '{{ ansible_user_dir }}/sametime/package/'
+package_filename: 'Sametime_11.5_MeetingServer.zip'
+# Path on all Kubernetes nodes
+package_unpack_dir: '{{ ansible_user_dir }}/sametime/package/install/'

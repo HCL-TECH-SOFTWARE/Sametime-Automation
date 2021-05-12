@@ -1,0 +1,70 @@
+# install_certmgr.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - cert-mgr] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Check whether to install cert-manager
+  vars:
+    install_requests:
+      - '{{ dashborad_create_tls_certificate }}'
+      - '{{ elasticsearch_kibana_create_tls_certificate }}'
+      - '{{ prometheus_grafana_create_tls_certificate }}'
+  set_fact:
+    install_certmgr: '{{ true if (true in install_requests) else false }}'
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+
+# -------------- Install cert-manager --------------
+
+- name: Add Helm repository for cert-manager
+  command:
+    cmd: 'helm repo add jetstack {{ certmgr_repository }}'
+  register: certmgr_helm_result
+  changed_when: '"has been added" in certmgr_helm_result.stdout'
+  when: install_certmgr
+
+- name: Update Helm repositories
+  command:
+    cmd: 'helm repo update'
+  when: install_certmgr
+
+- name: Install cert-manager
+  command:
+    cmd: 'helm install cert-manager jetstack/cert-manager --set installCRDs=true --namespace {{ certmgr_namespace }} --create-namespace'
+  register: certmgr_install_result
+  changed_when: '"STATUS: deployed" in certmgr_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in certmgr_install_result.stderr'
+    - certmgr_install_result.rc != 0
+  when: install_certmgr
+
+# -------------- Configure ClusterIssuers --------------
+
+- name: Register clusterissuers for Let's Encrypt
+  include_tasks: certmgr_issuers.yml
+  loop: '{{ issuers_combinations }}'
+  when:
+    - install_certmgr
+    - item.issuer_env == issuer_env
+
+- name: Delete temporary cloudissuer file
+  file:
+    path: '{{ package_unpack_dir }}clusterissuer.yml'
+    state: absent
+  ignore_errors: true
+  when:
+    - install_certmgr
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - cert-mgr] Ending'
+  include_role:
+    name: common
+    tasks_from: log

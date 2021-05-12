@@ -1,0 +1,7 @@
+# setup_hosts.yml
+---
+- hosts: masters:workers
+  vars_files:
+    - vars/vars.yml
+  roles:
+    - role: setup-hosts-file

@@ -1,0 +1,39 @@
+# configure_firewalld.yml
+---
+- name: Install firewalld
+  become: true
+  package:
+    name: firewalld
+    state: present
+
+- name: Start and enable firewalld service
+  become: true
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Open ports in firewalld on Master node
+  become: true
+  firewalld:
+    port: '{{ item }}'
+    permanent: true
+    state: enabled
+  loop: '{{ firewalld_master_ports }}'
+  when: inventory_hostname in groups['masters']
+# check ports with command: sudo firewall-cmd --list-all
+
+- name: Open ports in firewalld on Workers nodes
+  become: true
+  firewalld:
+    port: '{{ item }}'
+    permanent: true
+    state: enabled
+  loop: '{{ firewalld_worker_ports }}'
+  when: inventory_hostname in groups['workers']
+
+- name: Reload firewalld
+  become: true
+  service:
+    name: firewalld
+    state: reloaded

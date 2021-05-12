@@ -1,0 +1,37 @@
+# install_helm.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Helm] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Download Helm install file
+  get_url:
+    url: '{{ helm_install_file }}'
+    dest: '{{ ansible_user_dir }}/get-helm.sh'
+    mode: u=rwx,g=rx,o=rx
+
+- name: Install Helm
+  command: '{{ ansible_user_dir }}/get-helm.sh'
+  register: helm_result
+  changed_when: 'not "already latest" in helm_result.stdout'
+#  ...helm is installed into /usr/local/bin/helm
+
+- name: Delete temporary file
+  file:
+    path: '{{ ansible_user_dir }}/get-helm.sh'
+    state: absent
+  ignore_errors: true
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Helm] Ending'
+  include_role:
+    name: common
+    tasks_from: log

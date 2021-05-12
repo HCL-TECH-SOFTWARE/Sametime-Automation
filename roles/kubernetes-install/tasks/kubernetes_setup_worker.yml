@@ -1,0 +1,15 @@
+# kubernetes_setup_worker.yml
+---
+- name: Check if worker node has been already joined to the master
+  stat:
+    path: '/etc/kubernetes/kubelet.conf'
+  register: kubernetes_join_stat
+
+- name: Store Kubernetes status (joined or not) for future use
+  set_fact:
+    kubernetes_joined: '{{ true if kubernetes_join_stat.stat.exists else false }}'
+
+- name: Join Kubernetes master
+  become: true
+  command: '{{ hostvars.master.kubeadm_join_command.stdout }}'
+  when: not kubernetes_joined

@@ -1,0 +1,5 @@
+# kibana_ip_patch.j2
+---
+spec:
+  type: 'LoadBalancer'
+  loadBalancerIP: '{{ elasticsearch_kibana_assigned_ip_address }}'

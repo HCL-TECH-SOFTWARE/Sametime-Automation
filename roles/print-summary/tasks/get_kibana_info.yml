@@ -1,0 +1,23 @@
+# get_kibana_info.yml
+---
+# -------------- Gathering info for Kibana --------------
+
+- name: Get Kibana service name
+  command:
+    cmd: 'kubectl get service --selector="common.k8s.elastic.co/type=kibana" -A -ojsonpath="{.items..metadata.name}"'
+  register: kibana_service_name
+
+- name: Get Kibana External IP address
+  command:
+    cmd: 'kubectl get service {{ kibana_service_name.stdout }} -ojsonpath="{.status.loadBalancer.ingress[0].ip}"'
+  register: kibana_external_ip
+
+- name: Get Kibana External port
+  command:
+    cmd: 'kubectl get service {{ kibana_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}"'
+  register: kibana_external_port
+
+- name: Get Kibana admin password
+  shell:
+    cmd: 'kubectl get secret elasticsearch-es-elastic-user -o=jsonpath="{.data.elastic}" | base64 --decode'
+  register: kibana_admin_password

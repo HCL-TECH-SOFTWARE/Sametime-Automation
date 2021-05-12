@@ -1,0 +1,25 @@
+# get_ingress_info.yml
+---
+# -------------- Gathering info for Ingress (default) --------------
+
+- name: Get Ingress External IP address
+  command:
+    cmd: 'kubectl get service {{ ingress_service }}-controller -ojsonpath="{.status.loadBalancer.ingress[0].ip}" -n {{ ingress_namespace }}'
+  register: ingress_external_ip
+
+- name: Get Ingress External port
+  command:
+    cmd: 'kubectl get service {{ ingress_service }}-controller -ojsonpath="{.spec.ports[0].port}" -n {{ ingress_namespace }}'
+  register: ingress_external_port
+
+# -------------- Gathering info for internal Ingress --------------
+
+- name: Get internal Ingress External IP address
+  command:
+    cmd: 'kubectl get service {{ ingress_internal_service }}-controller -ojsonpath="{.status.loadBalancer.ingress[0].ip}" -n {{ ingress_internal_namespace }}'
+  register: ingress_internal_external_ip
+
+- name: Get internal Ingress External port
+  command:
+    cmd: 'kubectl get service {{ ingress_internal_service }}-controller -ojsonpath="{.spec.ports[0].port}" -n {{ ingress_internal_namespace }}'
+  register: ingress_internal_external_port

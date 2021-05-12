@@ -1,0 +1,20 @@
+# certmgr-issuers.yml
+---
+- name: Copy clusterissuer resource file for Let's Encrypt
+  vars:
+    issuer_env: '{{ item.issuer_env }}'
+    issuer_name: 'letsencrypt-{{ item.issuer_env }}-{{ item.ingress_class }}-cluster-issuer'
+    issuer_server: '{{ vars[item.issuer_env + "_issuer_server"] }}'
+    issuer_key: 'letsencrypt-{{ item.issuer_env }}-{{ item.ingress_class }}-cluster-issuer-key'
+    ingress_class: '{{ item.ingress_class }}'
+  template:
+    src: clusterissuer.j2
+    dest: '{{ package_unpack_dir }}clusterissuer.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Apply clusterissuer resource file for Let's Encrypt
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f clusterissuer.yml'
+  register: clusterissuer_result
+  changed_when: '"created" in clusterissuer_result.stdout'

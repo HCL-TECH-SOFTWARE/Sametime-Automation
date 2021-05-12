@@ -1,0 +1,14 @@
+# hosts_info.yml
+---
+- name: Print inventory info
+  debug:
+    msg:
+      - 'All hosts the play should run: {{ ansible_play_hosts_all | to_yaml }}'
+      - 'All hosts the play will acutally run: {{ ansible_play_batch | to_yaml }}'
+    verbosity: 1
+
+- name: Print volumes info
+  vars:
+    elastic_host: "{{ groups['elasticsearch'][0] }}"
+  debug:
+    msg: "Elasticsearch volume will be created on this node: {{ elastic_host }} running on this address: {{ hostvars[elastic_host].ansible_host }}"

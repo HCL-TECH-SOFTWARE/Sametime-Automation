@@ -1,0 +1,23 @@
+# main.yml
+---
+# EFK parameters
+elastic_pv_manifest: 'kubernetes/logging/logging-pv.yaml'
+
+# Sametime parameters
+sametime_pv_manifest: 'kubernetes/storage/single-node/peristent-volume.yaml'
+
+# Helm chart update
+charts_to_update:
+  - 'helm/charts/web/templates/deployment.yaml'
+  - 'helm/charts/auth/templates/deployment.yaml'
+  - 'helm/charts/catalog/templates/deployment.yaml'
+  - 'helm/charts/recordings/templates/deployment.yaml'
+
+hosts_in_chart: |6
+            hostAliases:
+            - hostnames:
+              - "{{ sametime_proxy_host }}"
+              ip: "{{ sametime_proxy_host_ip }}"
+            - hostnames:
+              - "{{ mongo_host }}"
+              ip: "{{ mongo_host_ip }}"

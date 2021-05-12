@@ -1,0 +1,23 @@
+# sametime_images.yml
+---
+- name: Check if Docker images are already imported
+  block:
+    - name: Check if Docker images are already imported
+      shell:
+        cmd: 'docker images --format {%raw%}"{{.Repository}}"{%endraw%} | grep sametime-docker'
+      changed_when: false
+  rescue:
+    - name: ... handling image check error
+      debug:
+        msg: Sametime images are not imported into Docker yet.
+      register: images_not_imported
+
+- name: Load Docker images
+  expect:
+    chdir: '{{ package_unpack_dir }}'
+    command: './load.sh'
+    responses:
+      registry: ''
+    timeout: 300
+  throttle: 1
+  when: images_not_imported is defined

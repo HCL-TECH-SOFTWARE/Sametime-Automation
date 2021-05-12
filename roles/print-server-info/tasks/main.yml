@@ -1,0 +1,25 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Print Server Info] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Inventory info
+  import_tasks: hosts_info.yml
+
+- name: Server info
+  import_tasks: server_info.yml
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Print Server Info] Ending'
+  include_role:
+    name: common
+    tasks_from: log

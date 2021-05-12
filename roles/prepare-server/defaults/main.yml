@@ -1,0 +1,34 @@
+# main.yml
+---
+firewalld_master_ports:
+  - 6443/tcp        # kubernetes
+  - 2379-2380/tcp   # kubernetes
+  - 10250/tcp       # kubernetes
+  - 10251/tcp       # kubernetes
+  - 10252/tcp       # kubernetes
+  - 10255/tcp       # kubernetes
+  - 179/tcp         # calico
+  - 4789/udp        # calico
+  - 5473/tcp        # calico
+  - 443/tcp         # calico
+  - 6443/tcp        # calico
+  - 9090/tcp        # prometheus
+  - 9091/tcp        # prometheus
+  - 9093/tcp        # prometheus
+  - 9094/tcp        # prometheus
+  - 9100/tcp        # prometheus
+
+firewalld_worker_ports:
+  - 10250/tcp       # kubernetes
+  - 10255/tcp       # kubernetes
+  - 30000-32767/tcp # kubernetes
+  - 179/tcp         # calico
+  - 4789/udp        # calico
+  - 5473/tcp        # calico
+  - 443/tcp         # calico
+  - 6443/tcp        # calico
+  - 9090/tcp        # prometheus
+  - 9091/tcp        # prometheus
+  - 9093/tcp        # prometheus
+  - 9094/tcp        # prometheus
+  - 9100/tcp        # prometheus

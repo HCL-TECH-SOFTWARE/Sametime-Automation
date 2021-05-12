@@ -1,0 +1,65 @@
+# docker_install.yml
+---
+- name: Install Docker
+  become: true
+  package:
+    name: "{{ docker_packages }}"
+    state: latest
+  register: yum_install_result
+
+- name: Print installed packages (yum)
+  debug:
+    msg:
+      - 'Installed: {{ yum_install_result.changes.installed }}'
+      - 'Updated: {{ yum_install_result.changes.updated }}'
+    verbosity: 1
+  when:
+    - yum_install_result.changed == true
+    - ansible_os_family == 'RedHat'
+
+- name: Enable docker daemon and start it
+  become: true
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Configure cgroup driver
+  become: true
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  register: cgroup_driver
+
+- name: Restart docker
+  become: true
+  service:
+    name: docker
+    state: restarted
+  when: cgroup_driver.changed
+
+- name: Add ansible user to docker group
+  become: true
+  user:
+    name: ansible
+    groups: docker
+    append: yes
+
+- name: Set access for ansible user to Docker deamon
+  become: true
+  vars:
+    current_user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+  command:
+    cmd: 'setfacl --modify user:{{ current_user }}:rw /var/run/docker.sock'
+
+- name: Prevent docker for being automatically updated (yum)
+  become: true
+  command: 'yum versionlock add docker-ce*'
+  args:
+    warn: false
+  when:
+    - yum_install_result.changed == true
+    - ansible_os_family == 'RedHat'

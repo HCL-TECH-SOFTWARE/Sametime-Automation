@@ -1,0 +1,182 @@
+# install_logging.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Logging] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# -------------- Default Storage class --------------
+
+- name: Copy yaml file with default Storage Class (local-storage)
+  copy:
+    src: logging_sc.yml
+    dest: '{{ package_unpack_dir }}logging_sc.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Define local-storage as a default Storage Class
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f logging_sc.yml'
+  register: logging_storageclass_result
+  changed_when: '"created" in logging_storageclass_result.stdout'
+
+- name: Delete temporary storageclass file
+  file:
+    path: '{{ package_unpack_dir }}logging_sc.yml'
+    state: absent
+  ignore_errors: true
+
+# -------------- Create volumes --------------
+
+- name: Copy yaml file with Persistent Volume definition for Elastic
+  vars:
+    elastic_host: "{{ groups['elasticsearch'][0] }}"
+  template:
+    src: logging_pv.j2
+    dest: '{{ package_unpack_dir }}logging_pv.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Create Persistent Volume
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f logging_pv.yml'
+  register: logging_pv_result
+  changed_when: '"created" in logging_pv_result.stdout'
+
+- name: Delete temporary Persisten Volume file
+  file:
+    path: '{{ package_unpack_dir }}logging_pv.yml'
+    state: absent
+  ignore_errors: true
+
+# -------------- Install Elasicsearch Operator --------------
+
+- name: Add Helm repository for Elasticsearch Operator
+  command:
+    cmd: 'helm repo add elastic https://helm.elastic.co'
+  register: logging_operator_helm_result
+  changed_when: '"has been added" in logging_operator_helm_result.stdout'
+
+- name: Update Helm repositories
+  command:
+    cmd: 'helm repo update'
+
+- name: Install Elasticsearch Operator
+  command:
+    cmd: 'helm install elastic-operator elastic/eck-operator -n elastic-system --create-namespace'
+  register: logging_operator_install_result
+  changed_when: '"STATUS: deployed" in logging_operator_install_result.stdout'
+  failed_when:
+    - '"cannot re-use a name that is still in use" not in logging_operator_install_result.stderr'
+    - logging_operator_install_result.rc != 0
+
+# -------------- Install Elasicsearch Cluster (Elasticsearch, Filebeat, Kibana) --------------
+
+- name: Download Elasticsearch cloud manifest
+  get_url:
+    url: '{{ elasticsearch_cloud_manifest }}'
+    dest: '{{ package_unpack_dir }}elasticsearch-cloud.yml'
+    mode: u=rwx,g=rx,o=rx
+
+- name: Update Elasticsearch cluster manifest (number of nodes)
+  replace:
+    path: '{{ package_unpack_dir }}elasticsearch-cloud.yml'
+    regexp: 'count: 3'
+    replace: 'count: 1'
+
+- name: Install Elasicsearch Cluster
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f elasticsearch-cloud.yml'
+  register: logging_cluster_install_result
+  changed_when: '"created" in logging_cluster_install_result.stdout'
+
+- name: Delete temporary Elasticsearch cluster file
+  file:
+    path: '{{ package_unpack_dir }}elasticsearch-cloud.yml'
+    state: absent
+  ignore_errors: true
+
+- name: Get Kibana service name
+  command:
+    cmd: 'kubectl get service --selector="common.k8s.elastic.co/type=kibana" -A -ojsonpath="{.items..metadata.name}"'
+  register: kibana_service_name
+  when: (elasticsearch_kibana_expose_type == 'loadbalancer') or
+        (elasticsearch_kibana_expose_type == 'ingress')
+
+# -------------- Patch Kibana with external IP address (expose type = loadbalancer) --------------
+
+- name: Copy patch file for Kibana IP assignement
+  template:
+    src: kibana_ip_patch.j2
+    dest: '{{ package_unpack_dir }}kibana_ip_patch.yml'
+    mode: u=rw,g=r,o=r
+  when: elasticsearch_kibana_expose_type == 'loadbalancer'
+
+- name: Assign dedicated IP address for Kibana
+  shell:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl patch service {{ kibana_service_name.stdout }} -p "$(cat kibana_ip_patch.yml)"'
+  when: elasticsearch_kibana_expose_type == 'loadbalancer'
+
+- name: Delete temporary Kibana patch file
+  file:
+    path: '{{ package_unpack_dir }}kibana_ip_patch.yml'
+    state: absent
+  ignore_errors: true
+  when: elasticsearch_kibana_expose_type == 'loadbalancer'
+
+# -------------- Apply Ingress rule for Kibana (expose type = ingress) --------------
+
+- name: Get Kibana External port
+  command:
+    cmd: 'kubectl get service {{ kibana_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}"'
+  register: kibana_external_port
+  when: elasticsearch_kibana_expose_type == 'ingress'
+
+- name: Copy ingress resource file for Kibana
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+    issuer_name: 'letsencrypt-{{ issuer_env }}-{{ ingress_internal_class }}-cluster-issuer'
+    service_name: '{{ kibana_service_name.stdout }}'
+    service_port: '{{ kibana_external_port.stdout }}'
+  template:
+    src: kibana_ingress.j2
+    dest: '{{ package_unpack_dir }}kibana_ingress.yml'
+    mode: u=rw,g=r,o=r
+  when: elasticsearch_kibana_expose_type == 'ingress'
+
+- name: Apply ingress resource file for Kibana
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f kibana_ingress.yml'
+  register: ingress_kibana_result
+  changed_when: '"created" in ingress_kibana_result.stdout'
+  when: elasticsearch_kibana_expose_type == 'ingress'
+
+- name: Delete temporary Kibana ingress file
+  file:
+    path: '{{ package_unpack_dir }}kibana_ingress.yml'
+    state: absent
+  ignore_errors: true
+  when: elasticsearch_kibana_expose_type == 'ingress'
+
+- name: Set cluster type to ClusterIP for Kibana
+  vars:
+    service_name: '{{ kibana_service_name.stdout }}'
+  command:
+    cmd: kubectl patch service {{ service_name }} -p '{"spec":{"type":"ClusterIP"}}'
+  register: kibana_cluster_type_result
+  changed_when: '"created" in kibana_cluster_type_result.stdout'
+  when: elasticsearch_kibana_expose_type == 'ingress'
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Logging] Ending'
+  include_role:
+    name: common
+    tasks_from: log

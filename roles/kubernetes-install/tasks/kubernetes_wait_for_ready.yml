@@ -1,0 +1,13 @@
+# kubernetes_wait_for_ready.yml
+---
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until all system pods are Ready
+  command: 'kubectl wait --namespace=kube-system --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false

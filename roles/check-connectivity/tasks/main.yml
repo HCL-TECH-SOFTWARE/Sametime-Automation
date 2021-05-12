@@ -1,0 +1,4 @@
+# main.yml
+---
+- name: Check connectivity
+  import_tasks: check_connectivity.yml

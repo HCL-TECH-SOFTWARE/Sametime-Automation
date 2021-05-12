@@ -1,0 +1,24 @@
+# get_certificate_info.yml
+---
+# -------------- Gathering info about certificates --------------
+
+- name: Create Dashboard certificate info
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+  set_fact:
+    dashboard_certificate_info: "Let's Encrypt certificate issued ({{ issuer_env }})"
+  when: dashborad_create_tls_certificate
+
+- name: Create Kibana certificate info
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+  set_fact:
+    kibana_certificate_info: "Let's Encrypt certificate issued ({{ issuer_env }})"
+  when: elasticsearch_kibana_create_tls_certificate
+
+- name: Create Grafana certificate info
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+  set_fact:
+    grafana_certificate_info: "Let's Encrypt certificate issued ({{ issuer_env }})"
+  when: prometheus_grafana_create_tls_certificate

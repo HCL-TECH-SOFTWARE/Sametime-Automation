@@ -1,0 +1,25 @@
+# kubernetes_install_redhat.yml
+---
+- name: Install Kubernetes packages (yum)
+  become: true
+  yum:
+    name: '{{ kubernetes_packages }}'
+    state: latest
+    disable_excludes: Kubernetes
+  register: yum_install_result
+
+- name: Print installed packages (yum)
+  debug:
+    msg:
+      - 'Installed: {{ yum_install_result.changes.installed }}'
+      - 'Updated: {{ yum_install_result.changes.updated }}'
+    verbosity: 1
+  when:
+    - yum_install_result.changed == true
+
+- name: Enable kubelet daemon and start it
+  become: true
+  service:
+    name: kubelet
+    state: started
+    enabled: true

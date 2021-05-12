@@ -1,0 +1,16 @@
+# clusterissuer.j2
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ issuer_name }}
+spec:
+  acme:
+    email: {{ certmgr_email }}
+    server: {{ issuer_server }}
+    privateKeySecretRef:
+      name: {{ issuer_key }}
+    solvers:
+    - http01:
+        ingress:
+          class: {{ ingress_class }}

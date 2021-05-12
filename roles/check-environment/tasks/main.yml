@@ -1,0 +1,33 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Check Environment] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Check filled entries in vars.yml
+  include_tasks: check_vars.yml
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Check nodes HW and OS parameters
+  include_tasks: check_nodes.yml
+
+- name: Print summary of all checks
+  include_tasks: summary_check.yml
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Continue or abort the script
+  include_tasks: continue_check.yml
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Check Environment] Ending'
+  include_role:
+    name: common
+    tasks_from: log

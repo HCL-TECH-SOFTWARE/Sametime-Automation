@@ -1,0 +1,23 @@
+# get_grafana_info.yml
+---
+# -------------- Gathering info for Grafana --------------
+
+- name: Get Grafana service name
+  command:
+    cmd: 'kubectl get service --selector="app.kubernetes.io/name=grafana" -A -ojsonpath="{.items..metadata.name}"'
+  register: grafana_service_name
+
+- name: Get Grafana External IP address
+  command:
+    cmd: 'kubectl get service {{ grafana_service_name.stdout }} -ojsonpath="{.status.loadBalancer.ingress[0].ip}" -n {{ monitoring_namespace }}'
+  register: grafana_external_ip
+
+- name: Get Grafana External port
+  command:
+    cmd: 'kubectl get service {{ grafana_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}" -n {{ monitoring_namespace }}'
+  register: grafana_external_port
+
+- name: Get Grafana admin password
+  shell:
+    cmd: 'kubectl get secret prometheus-grafana -o=jsonpath="{.data.admin-password}" -n {{ monitoring_namespace }} | base64 --decode'
+  register: grafana_admin_password

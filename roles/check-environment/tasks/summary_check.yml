@@ -1,0 +1,30 @@
+# summary_check.yml
+---
+- name: Count number of failed tests across all nodes
+  vars:
+    entry_count: '{{ hostvars[item]["fail_test_node_results_count"] }}'
+  set_fact:
+    fail_test_node_results_total_count: '{{ ((fail_test_node_results_total_count | default(0) | int) + (entry_count | int)) }}'
+  loop: '{{ groups["all"] }}'
+  no_log: '{{ not (detailed_output | default(false)) }}'
+
+- name: Print info when all tests pass
+  debug:
+    msg: 'Congratulations! All tests passed successfully. Vars errors: {{ fail_test_vars_results_count }}.  Nodes errors: {{ fail_test_node_results_total_count }}.'
+  when:
+    - fail_test_vars_results_count | int == 0
+    - fail_test_node_results_total_count | int == 0
+
+- name: Print warning when at least one test failed
+  debug:
+    msg: 'At least one test failed. Vars errors: {{ fail_test_vars_results_count }}.  Nodes errors: {{ fail_test_node_results_total_count }}.'
+  when:
+    - (fail_test_vars_results_count | int > 0) or (fail_test_node_results_total_count | int > 0)
+
+- name: Prompt for continue
+  pause:
+    prompt: 'Do you want to continue? [ Y / N ]'
+    echo: true
+  register: prompt_result
+  when:
+    - (fail_test_vars_results_count | int > 0) or (fail_test_node_results_total_count | int > 0)

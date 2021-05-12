@@ -1,0 +1,39 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Install] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Prepare RedHat for Kubernetes
+  include_tasks: kubernetes_prepare_redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Install Kubernetes on RedHat
+  include_tasks: kubernetes_install_redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Setup Kubernetes master node
+  include_tasks: kubernetes_setup_master.yml
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Setup Kubernetes worker nodes
+  include_tasks: kubernetes_setup_worker.yml
+  when: inventory_hostname in groups['workers']
+
+- name: Wait until Kubernetes cluster starts
+  include_tasks: kubernetes_wait_for_ready.yml
+  when: inventory_hostname == groups['masters'][0]
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Install] Ending'
+  include_role:
+    name: common
+    tasks_from: log

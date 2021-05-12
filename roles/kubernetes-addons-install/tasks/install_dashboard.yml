@@ -1,0 +1,120 @@
+# install_dashboards.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Dashboard] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# -------------- Install Dashboard --------------
+
+- name: Install Kubernetes Dashboard
+  command:
+    cmd: 'kubectl apply -f {{ kubernetes_dashboard_manifest }}'
+  register: dashboard_result
+  changed_when: '"created" in dashboard_result.stdout'
+
+- name: Copy yaml file with service account definition
+  copy:
+    src: dashboard_adminuser.yml
+    dest: '{{ ansible_user_dir }}/dashboard_adminuser.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Create service account and role binding
+  command:
+    cmd: 'kubectl apply -f dashboard_adminuser.yml'
+  register: service_result
+  changed_when: '"created" in service_result.stdout'
+
+- name: Delete temporary file
+  file:
+    path: '{{ ansible_user_dir }}/dashboard_adminuser.yml'
+    state: absent
+  ignore_errors: true
+
+- name: Get Dashboard service name
+  command:
+    cmd: 'kubectl get service --selector="k8s-app=kubernetes-dashboard" -A -ojsonpath="{.items..metadata.name}"'
+  register: dashboard_service_name
+  when: (dashboard_expose_type == 'loadbalancer') or
+        (dashboard_expose_type == 'ingress')
+
+# -------------- Patch Dashboard with external IP address (expose type = loadbalancer) --------------
+
+- name: Copy patch file for Dashboard IP assignement
+  template:
+    src: dashboard_ip_patch.j2
+    dest: '{{ package_unpack_dir }}dashboard_ip_patch.yml'
+    mode: u=rw,g=r,o=r
+  when: dashboard_expose_type == 'loadbalancer'
+
+- name: Assign dedicated IP address for Dashboard
+  shell:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl patch service {{ dashboard_service_name.stdout }} -p "$(cat dashboard_ip_patch.yml)" -n {{ dashboard_namespace }}'
+  register: dashboard_ip_result
+  changed_when:
+    - '"patched" in dashboard_ip_result.stdout'
+    - 'not "(no change)" in dashboard_ip_result.stdout'
+  when: dashboard_expose_type == 'loadbalancer'
+
+- name: Delete temporary Dashboard patch file
+  file:
+    path: '{{ package_unpack_dir }}dashboard_ip_patch.yml'
+    state: absent
+  ignore_errors: true
+  when: dashboard_expose_type == 'loadbalancer'
+
+# -------------- Apply Ingress rule for Dashboard (expose type = ingress) --------------
+
+- name: Get Dashboard External port
+  command:
+    cmd: 'kubectl get service -n {{ dashboard_namespace }} {{ dashboard_service_name.stdout }} -ojsonpath="{.spec.ports[0].port}"'
+  register: dashboard_external_port
+  when: dashboard_expose_type == 'ingress'
+
+- name: Copy ingress resource file for Dashboard
+  vars:
+    issuer_env: '{{ "staging" if use_letsencypt_staging else "production" }}'
+    issuer_name: 'letsencrypt-{{ issuer_env }}-{{ ingress_internal_class }}-cluster-issuer'
+    service_name: '{{ dashboard_service_name.stdout }}'
+    service_port: '{{ dashboard_external_port.stdout }}'
+  template:
+    src: dashboard_ingress.j2
+    dest: '{{ package_unpack_dir }}dashboard_ingress.yml'
+    mode: u=rw,g=r,o=r
+  when: dashboard_expose_type == 'ingress'
+
+- name: Apply ingress resource file for Dashboard
+  command:
+    chdir: '{{ package_unpack_dir }}'
+    cmd: 'kubectl apply -f dashboard_ingress.yml'
+  register: ingress_dashboard_result
+  changed_when: '"created" in ingress_dashboard_result.stdout'
+  when: dashboard_expose_type == 'ingress'
+
+- name: Delete temporary Dashboard ingress file
+  file:
+    path: '{{ package_unpack_dir }}dashboard_ingress.yml'
+    state: absent
+  ignore_errors: true
+  when: dashboard_expose_type == 'ingress'
+
+- name: Set cluster type to ClusterIP for Dashboard
+  vars:
+    service_name: '{{ dashboard_service_name.stdout }}'
+  command:
+    cmd: kubectl patch service {{ service_name }} -p '{"spec":{"type":"ClusterIP"}}' -n {{ dashboard_namespace }}
+  register: dashboard_cluster_type_result
+  changed_when: '"created" in dashboard_cluster_type_result.stdout'
+  when: dashboard_expose_type == 'ingress'
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Kubernetes Add-ons Install - Dashboard] Ending'
+  include_role:
+    name: common
+    tasks_from: log

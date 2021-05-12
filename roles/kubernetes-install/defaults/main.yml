@@ -1,0 +1,18 @@
+# main.yml
+---
+# Kubernetes on RedHat parameters
+kubernetes_yum_repo_url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+
+kubernetes_yum_gpg_keys:
+  - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+  - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+kubernetes_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+kubernetes_calico_manifest_file: https://docs.projectcalico.org/v3.17/manifests/calico.yaml
+
+POD_CIDR: '10.244.0.0/16'
+SERVICE_CIDR: '10.96.0.0/24'

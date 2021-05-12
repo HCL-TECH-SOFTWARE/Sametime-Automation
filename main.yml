@@ -1,0 +1,46 @@
+# main.yml
+---
+- name: Check environment
+  hosts: all
+  vars_files:
+    - vars/defaults.yml
+    - vars/vars.yml
+  roles:
+    - role: check-environment
+      tags: check-environment
+
+- name: Install Sametime Meetings
+  hosts: masters:workers
+  vars_files:
+    - vars/defaults.yml
+    - vars/vars.yml
+  roles:
+    - role: print-server-info
+      tags: print-server-info
+
+    - role: prepare-server
+      tags: prepare-server
+
+    - role: docker-install
+      tags: docker-install
+
+    - role: kubernetes-install
+      tags: kubernetes-install
+
+    - role: prepare-install-package
+      tags: prepare-install-package
+
+    - role: kubernetes-addons-install
+      tags: kubernetes-addons-install
+
+    - role: sametime-install
+      tags: sametime-install
+
+- name: Print installation summary
+  hosts: masters[0]
+  vars_files:
+    - vars/defaults.yml
+    - vars/vars.yml
+  roles:
+    - role: print-summary
+      tags: print-summary

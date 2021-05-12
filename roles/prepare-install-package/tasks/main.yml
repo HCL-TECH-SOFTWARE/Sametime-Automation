@@ -1,0 +1,26 @@
+# main.yml
+---
+- name: Log progress
+  vars:
+    log_message: '[Prepare Install Package] Starting'
+  include_role:
+    name: common
+    tasks_from: log
+
+# ------------------------------------------------------
+
+- name: Unzip package
+  import_tasks: unzip_package.yml
+
+- name: Update unzipped package
+  import_tasks: prepare_package.yml
+  when: inventory_hostname == groups['masters'][0]
+
+# ------------------------------------------------------
+
+- name: Log progress
+  vars:
+    log_message: '[Prepare Install Package] Ending'
+  include_role:
+    name: common
+    tasks_from: log
