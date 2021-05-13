@@ -10,13 +10,13 @@ mongo_host_ip: '192.168.10.138'
 sametime_proxy_host_ip: '192.168.10.138'
 
 # Used in:  sametime_install (generateSecrets.sh)
-mongo_host: 'orion.petrkunc.net'
+mongo_host: 'orion.example.com'
 mongo_port: '27017'
 mongo_user: 'sametimeUser'
 mongo_password: 'sametime'
 
 # Used in: prepare_install_package
-sametime_proxy_host: 'webchat.petrkunc.net'
+sametime_proxy_host: 'webchat.example.com'
 sametime_proxy_port: '8443'
 
 
@@ -67,17 +67,17 @@ ingress_internal_assigned_ip_address: '192.168.10.156'
 
 dashboard_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
 dashboard_assigned_ip_address: '192.168.10.157'     ## used only for type loadbalancer
-dashboard_assigned_hostname: 'dashboard.petrkunc.net'     ## used only for type ingress
+dashboard_assigned_hostname: 'dashboard.example.com'     ## used only for type ingress
 dashborad_create_tls_certificate: true                    ## used only for type ingress
 
 elasticsearch_kibana_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
 elasticsearch_kibana_assigned_ip_address: '192.168.10.158'    ## used only for type loadbalancer
-elasticsearch_kibana_assigned_hostname: 'logging.petrkunc.net'     ## used only for type ingress
+elasticsearch_kibana_assigned_hostname: 'logging.example.com'     ## used only for type ingress
 elasticsearch_kibana_create_tls_certificate: true            ## used only for type ingress
 
 prometheus_grafana_expose_type: 'ingress' ## 'loadbalancer' ## 'none'
 prometheus_grafana_assigned_ip_address: '192.168.10.159'    ## used only for type loadbalancer
-prometheus_grafana_assigned_hostname: 'monitoring.petrkunc.net'     ## used only for type ingress
+prometheus_grafana_assigned_hostname: 'monitoring.example.com'     ## used only for type ingress
 prometheus_grafana_create_tls_certificate: false            ## used only for type ingress
 
 
@@ -88,8 +88,8 @@ prometheus_grafana_create_tls_certificate: false            ## used only for typ
 add_IPs_into_sametime_manifests: false
 
 # Used in: prepare_install_package, print_summary
-serverHostname: 'meetings.petrkunc.net'
-jwtCookieDomain: 'petrkunc.net'
+serverHostname: 'meetings.example.com'
+jwtCookieDomain: 'example.com'
 hostIp: ''        ## keep empty
 
 # Used in: prepare-server
