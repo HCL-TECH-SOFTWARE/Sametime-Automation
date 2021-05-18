@@ -1,6 +1,6 @@
 # HCL Sametime Meetings deployment on Kubernetes
 
-A set of Ansible scripts for automated deployment of HCL Sametime Meetings on pn-prem Kubernetes.
+A set of Ansible scripts for automated deployment of HCL Sametime Meetings on on-prem Kubernetes.
 
 ## Description
 New HCL Sametime Meetings runs in a containerized environment - Docker or Kubernetes. Docker is suitable for smaller deployments and lower workload; deployment is easier. Sametime on Kubernetes is harder to deploy but can handle a bigger workload due to Kubernetes scaling possibilities.
