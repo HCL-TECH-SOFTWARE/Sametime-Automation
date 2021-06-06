@@ -9,7 +9,7 @@ Each node should have at least 4 cores and 12 GB RAM -- this is a minimal enviro
 
 The operating system on these virtual machines (VMs) has to be Linux - RedHat-based (RHEL or CentOS).\
 > **Important:** The first version of the Ansible script is written and tested only on Centos 7.\
-So, if you want to use the script as is now, **install the latest version of CentOS 7 on your virtual machines.**
+So, if you want to use the script now, **install the latest version of CentOS 7 on your virtual machines.**
 
 The script will deploy Sametime Meetings only. We expect that you have already installed Sametime Community and Sametime Proxy. Install Community and Proxy servers on separate VMs; do not use the VMs you created for Kubernetes.
 **Note:** Sametime Community and Sametime Proxy can run on Windows. You do not need to move everything to Linux; Kubernetes nodes have to run on Linux.
@@ -53,7 +53,7 @@ It is an important decision, and it is described in detail in dedicated [page](n
 
 
 ## 2. Linux image template
-Since we will need to create at least 5 virtual machines with the same operating system, it is better to create one image and clone it (copy-paste) into multiple instances.
+Since we will need to create at least 5 virtual machines with the same operating system, creating one image and clone it (copy-paste) into multiple instances is better.
 
 Create a Linux VM template:
 
@@ -62,7 +62,7 @@ Create a Linux VM template:
     - Disk partitioning: /boot = 1024 MiB, swap = 2048 MiB, / = 196,00 GiB
   - enable network, keep default hostname: _localhost.localdomain_
   - remember root password
-  - (optional) update packages to the latest version: `yum update`
+  - update packages to the latest version: `yum update`
 
 ## 3. Clone all virtual machines
 You have a Linux template with CentOS 7; now clone it into 5-6 new virtual machines.\
@@ -79,10 +79,9 @@ Write down a list of IP addresses and hostnames, like this one:
 Start each of the virtual machines (Admin Workstation, Master, and all Worker nodes) and perform the following steps:
 
   - Log in as **root**.
-  - Check if the IP address is set up correctly, according to the list (In my case, I paired MAC address and IP address for leasing in DHCP server). Use the following commands to get the IP address:
+  According to the list, check if the IP address is set up correctly (you can assign the MAC address to the desired IP address for leasing in the DHCP server). Use the following commands to get the IP address:
 
-    `ip address`
-
+    `ip address`\
     `hostname -I`
   - Change hostname from localserver.localhost to the new name, according to your list of IPs and hostnames. Example:
 
@@ -90,11 +89,12 @@ Start each of the virtual machines (Admin Workstation, Master, and all Worker no
   - Check if you set the hostname correctly:
 
     `hostname -f` ... returns _ansible.example.com_
-  - Check if the hostname resolves correctly to IP address:
+  - Check if the hostname resolves correctly to the IP address:
 
     `ping ansible.example.com`
 
 At the end of this chapter, your environment should look like this:
+
 ![Installation - step 1](img/install-1.png)
 
 
@@ -113,24 +113,23 @@ In the following, I assume that you will promote one of the newly created VMs as
 ```
   - Create a new user with the name **ansible** and set his password. (You can choose a different name if you want. Ansible user name and password are stored in a config file `setup-ansible-user/defaults/main.yml`)
 
-    `adduser ansible`
-
+    `adduser ansible`\
     `passwd ansible`
   - Set ansible user as an account that can sudo without typing password for every sudo command:
 
     `visudo`
-    Scroll down and add the following line to the section _"## Same thing without a password"_:
+
+    Scroll down and add the following line to the section _"## Same thing without a password"_:\
       `ansible ALL=(ALL)       NOPASSWD: ALL`
-    **Note:** You can exit _vi_ editor with this keyboard sequence: Escape, :, w, q
+    > **Note:** The command launches vi editor. Enter edit mode with the key "i". You can exit _vi_ editor with this keyboard sequence: Escape, :, w, q, Enter
   - Test if you set sudo rights correctly:
 
-    `su - ansible` ... you shout not be asked for a password
-
-    `sudo whoami` ... you should see: _root_
-
+    `su - ansible` ... you shout not be asked for a password\
+    `sudo whoami` ... you should see: _root_\
     `sudo ls -la /root` ... you should see the content of the folder
 
 At the end of this chapter, your environment should look like this:
+
 ![Installation - step 2](img/install-2.png)
 
 ---
@@ -138,12 +137,10 @@ At the end of this chapter, your environment should look like this:
 Now is the time to upload the install files.\
 Although you will install Kubernetes and Sametime on virtual machines dedicated to Kubernetes (master and workers), you upload Sametime installation files and Ansible scripts only on the Admin Workstation. Ansible script will then copy and unzip Sametime install files from a workstation to remote servers automatically; you do not take care of it.
 
-- Log into Admin Workstation as **ansible** user.
-- Create a directory to store all Ansible-related stuff -- config files and Ansible scripts (they are called playbooks). Example (name of the folder is `sametime`, so the full path is `/home/ansible/sametime`):
+- Log in to Admin Workstation as **ansible** user.
+- Install the unzip package:
 
-  `mkdir ~/sametime`
-
-  `cd ~/sametime`
+  `sudo yum install unzip`
 
 - Download a package with Ansible scripts from the GitHub repository:
   https://github.com/HCL-TECH-SOFTWARE/Sametime-Automation
@@ -151,32 +148,48 @@ Although you will install Kubernetes and Sametime on virtual machines dedicated 
   Link to the zip file:
   https://github.com/HCL-TECH-SOFTWARE/Sametime-Automation/archive/refs/heads/main.zip
 
-- Upload this ZIP file to your Admin Workstation and unzip it in the home directory (/home/ansible). It should create a new directory `/home/ansible/sametime` and store all files in it.
-- Check that the directory structure is correct. This should be the content of directory `~/ansible/sametime`:
+- Upload this ZIP file to your Admin Workstation.
+  > **Note:** If you have troubles with uploading and unpacking a ZIP file with the script because your main workstation is on Windows, read the [detailed instructions](copy_to_linux.md).
+
+- Unzip the package, then rename the folder to a shorter name:
+
+  `cd ~`\
+  `unzip Sametime-Automation-main.zip`\
+  `mv Sametime-Automation-main sametime`
+
+- You just created a directory (`/home/ansible/sametime`) where all Ansible-related stuff is stored -- config files and Ansible scripts (they are called playbooks).\
+  Check that the directory structure is correct. This should be the content of directory `~/sametime`:
 ```ShellSession
+  [ansible@ansible sametime]$ cd ~/sametime
   [ansible@ansible sametime]$ pwd
   /home/ansible/sametime
   [ansible@ansible sametime]$ ll
-  total 52
-  -rw-r--r--.  1 ansible ansible 19971 Mar 17 15:52 ansible.cfg
-  -rw-rw-r--.  1 ansible ansible   166 Mar 17 15:52 check_connectivity.yml
-  -rw-rw-r--.  1 ansible ansible   551 Mar 17 15:52 inventory.example.yml
-  -rw-rw-r--.  1 ansible ansible   564 Mar 17 15:52 main.yml
-  drwxrwxrwx. 13 ansible ansible  4096 Mar 17 15:52 roles
-  -rw-rw-r--.  1 ansible ansible   648 Mar 17 15:52 setup_ansible_user.sh
-  -rw-rw-r--.  1 ansible ansible   119 Mar 17 15:52 setup_ansible_user.yml
-  -rw-rw-r--.  1 ansible ansible   144 Mar 17 15:52 setup_inventory.yml
-  drwxrwxrwx.  2 ansible ansible    42 Mar 17 15:52 vars
+  total 68
+  -rw-rw-r--.  1 ansible ansible 20005 May 18 15:16 ansible.cfg
+  -rw-rw-r--.  1 ansible ansible   128 May 18 15:16 check_connectivity.yml
+  -rw-rw-r--.  1 ansible ansible  4015 May 18 15:16 CODE_OF_CONDUCT.md
+  drwxrwxr-x.  3 ansible ansible   129 May 18 15:16 docs
+  -rw-rw-r--.  1 ansible ansible   495 May 18 15:16 inventory.example.yml
+  -rw-rw-r--.  1 ansible ansible 11347 May 18 15:16 LICENSE
+  -rw-rw-r--.  1 ansible ansible   925 May 18 15:16 main.yml
+  -rw-rw-r--.  1 ansible ansible  3828 May 18 15:16 README.md
+  drwxrwxr-x. 15 ansible ansible  4096 May 18 15:16 roles
+  -rw-rw-r--.  1 ansible ansible   635 May 18 15:16 setup_ansible_user.sh
+  -rw-rw-r--.  1 ansible ansible   125 May 18 15:16 setup_ansible_user.yml
+  -rw-rw-r--.  1 ansible ansible   119 May 18 15:16 setup_hosts.yml
+  drwxrwxr-x.  2 ansible ansible    50 May 18 15:16 vars
 ```
-> **Note:** If you have troubles with uploading and unpacking a ZIP file with the script because your main workstation is on Windows, read the [detailed instructions](copy_to_linux.md).
 
 You uploaded and extracted a ZIP file with Ansible automation scripts. Now you will upload the installation package for Sametime Meetings itself.
 - Download the package from Flexnet. The file name should be `Sametime_11.5_MeetingServer.zip`.
-- On Admin Workstation, create directory `package` within your _~/sametime/_ directory (so the path is _~/sametime/package_).
+- On Admin Workstation, create directory `package` within your _~/sametime/_ directory:
+
+  `mkdir ~/sametime/package`
 - Upload `Sametime_11.5_MeetingServer.zip` into this package subdirectory.
 - Do NOT unpack the ZIP package; the Ansible script will do it.
 
-At the end of this chapter, your environment should look like this (Sametime.zip on the picture represents `Sametime_11.5_MeetingServer.zip` package):
+At the end of this chapter, your environment should look like this (_Sametime.zip_ on the picture represents `Sametime_11.5_MeetingServer.zip` package):
+
 ![Installation - step 3](img/install-3.png)
 
 ---
@@ -202,13 +215,13 @@ You will perform these steps:
   - Check that Ansible is installed:
 
     `ansible --version`
-  ```
-      ansible 2.9.15
-      config file = /etc/ansible/ansible.cfg
-      configured module search path = [u'/home/ansible/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-      ansible python module location = /usr/lib/python2.7/site-packages/ansible
-      executable location = /usr/bin/ansible
-      python version = 2.7.5 (default, Oct 14 2020, 14:45:30) [GCC 4.8.5 20150623 (Red Hat 4.8.5-44)]
+  ```ShellSession
+    ansible 2.9.21
+    config file = /home/ansible/sametime/ansible.cfg
+    configured module search path = [u'/home/ansible/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+    ansible python module location = /usr/lib/python2.7/site-packages/ansible
+    executable location = /bin/ansible
+    python version = 2.7.5 (default, Nov 16 2020, 22:23:17) [GCC 4.8.5 20150623 (Red Hat 4.8.5-44)]
   ```
   - Update all yum packages:
 
@@ -217,11 +230,13 @@ You will perform these steps:
   - Create an Ansible inventory file. This file is the heart of your Ansible environment. It contains info about all the servers you want to manage with your Ansible scripts.
     - Use an example inventory file to create your own:
 
+      `cd ~/sametime`\
       `cp inventory.example.yml inventory.yml`
     - Edit `inventory.yml` and fill in the hostnames of your Master and Worker nodes.\
-    **Note:** Do not add an entry for Admin Workstation. You will do all commands from this workstation, and Ansible script can access it locally.\
-    **Important:** This is a YAML file. All Ansible script files are YAML files. In YAML always use spaces for indentation; never use tab!\
-    Example content of inventory.yml:
+      > **Note:** Do not add an entry for Admin Workstation. You will do all commands from this workstation, and Ansible script can access it locally.\
+      > **Important:** This is a YAML file. All Ansible script files are YAML files. In YAML always use spaces for indentation; never use tab!
+
+    Example content of `inventory.yml`:
   ```YAML
   all:
     hosts:
@@ -241,13 +256,18 @@ You will perform these steps:
           node4:
             ansible_host: node3.example.com
   ```
-  - Congratulation! You just set up your first ansible environment! Let's try some first commands. You have to be in your Ansible directory (`~/sametime`); otherwise, Ansible will not find your config and inventory file.
-  - Try your first Ansible command:
+  - Congratulation! You just set up your first ansible environment! Let's try some first commands. First, you have to be in your Ansible directory (`~/sametime`); otherwise, Ansible will not find your config and inventory file.
 
-    `ansible all -m ping -u root --ask-pass`
+(Optional) If you want, you can now try Ansible now:
 
-    This will test if you can access (via SSH) all servers in your inventory. You will see errors now because we did not configure SSH between the Admin Workstation and the remaining Linux servers yet.\
-    You should see something like this:
+  - First, you have to accept remote server fingerprint:
+
+    `ssh root@master.example.com`
+  - Now, try your first Ansible command:
+
+    `ansible masters -m ping -u root --ask-pass`
+
+    This will test if you can access (via SSH) the master node. You should see something like this:
   ```YAML
   master | SUCCESS => {
       "ansible_facts": {
@@ -260,20 +280,21 @@ You will perform these steps:
   As you see, it is not very practical to specify a remote user name and password in each command that we plan to use. Therefore you will set up SSH access to remote servers without a password in the following chapter (instead of a password, you will use an SSH key).
 
 At the end of this chapter, your environment should look like this:
+
 ![Installation - step 4](img/install-4.png)
 
 
 
 ## 2. Configure access to nodes
-Ansible uses SSH to connect to other servers. For this, you need a user account on the remote server. We will use user account _ansible_, the same one that you created in the previous chapter (with the command `adduser ansible`).\
+Ansible uses SSH to connect to other servers. For this, you need a user account on the remote server. We will use user account _ansible_, which you created in the previous chapter.\
 For SSH connectivity, you need either password of the remote user or SSH keys stored on both parts (Admin Workstation and a remote server). SSH keys are better because they will allow us to connect to a remote server without typing a password. And this is what we need to run our scripts.\
 The good thing is that for this step, we can use Ansible automation.
 
   - You are still logged as **ansible** user.
-  - First, you need to generate a pair of SSH keys (keep the default values, click on Enter three times):
+  - First, you need to generate a pair of SSH keys (keep the default values, click on **Enter** three times):
 
     `ssh-keygen`
-  ```
+  ```ShellSession
     Generating public/private rsa key pair.
     Enter file in which to save the key (/home/ansible/.ssh/id_rsa):
     Enter passphrase (empty for no passphrase):
@@ -295,41 +316,45 @@ The good thing is that for this step, we can use Ansible automation.
     |    .+*     .+.  |
     +----[SHA256]-----+
   ```
-  - Then you need to confirm SSH fingerprints of all remote servers. Type this commnad for all remote servers:
+  - Then, you need to confirm the SSH fingerprints of all remote servers. Type this command for all remote servers:
 
-    `ssh root@master.example.com`
-
-    `ssh root@node1.example.com`
-
+    `ssh root@master.example.com`\
+    `ssh root@node1.example.com`\
     `ssh root@node2.example.com`
 
   Confirm the fingerprint for each server.
-  ```
-    The authenticity of host 'master.example.com (192.168.10.140)' can't be established.
-    ECDSA key fingerprint is SHA256:ZNMV+RD2nIMNtm+nu93rvAFBS9K0qWzSotYRsvlHVX0.
-    ECDSA key fingerprint is MD5:73:54:fc:4c:d1:b7:30:84:9f:7d:05:f1:50:25:d5:bc.
-    Are you sure you want to continue connecting (yes/no)?       yes
-    Warning: Permanently added 'master.example.com,192.168.10.144' (ECDSA) to the list of known hosts.
-  ```
-  **Note:** you do not need to finish the ssh command once you approve the fingerprint. You can cancel your login using CTRL+C.
-  - Now, you need to do two things on a remote server: create user _ansible_, add it sudoer's right, and copy your public key from Admin Workstation to a remote server. You can do it manually, or you can use an Ansible script.
+```ShellSession
+  [ansible@ansible sametime]$ ssh root@master.example.com
+  The authenticity of host 'master.example.com (192.168.10.140)' can't be established.
+  ECDSA key fingerprint is SHA256:ZNMV+RD2nIMNtm+nu93rvAFBS9K0qWzSotYRsvlHVX0.
+  ECDSA key fingerprint is MD5:73:54:fc:4c:d1:b7:30:84:9f:7d:05:f1:50:25:d5:bc.
+  Are you sure you want to continue connecting (yes/no)? yes
+  Warning: Permanently added 'master.example.com,192.168.10.144' (ECDSA) to the list of known hosts.
+  root@master.example.com's password:
+  Last login: Sun Jun  6 10:28:11 2021 from 192.168.10.1
+  [root@master ~]#
+```
+  - You successfully logged in to the remote server. Now you can close this session:
+
+      `exit`
+
+>  **Note:** you do not need to finish the ssh command once you approve the fingerprint. You can cancel your login using CTRL+C.
+
+  - Now, you need to do two things on each remote server: create user _ansible_, add sudoer's right to it, and copy your public key from Admin Workstation to a remote server. You can do it manually, or you can use an Ansible script.
   - If you choose **manual steps**:
     - On a remote server (for example _master.example.com_) do the same commands as you did on the Admin Workstation: `adduser ansible`, `passwd ansible`, `visudo`
-    - On the workstation, try to connect manually: `ssh ansible@master.example.com`, then type a password for ansible user.
-    - On the workstation, copy SSH keys to the remote server:
+    On the workstation, try to connect manually: `ssh ansible@master.example.com` and then type a password for the ansible user.
+    - On the workstation, copy SSH keys for _ansible_ user to the remote server:
 
       `ssh-copy-id -i ~/.ssh/id_rsa.pub master.example.com`
   - If you choose **using the script**:
-      - In the script directory on the Admin Workstation, edit the config file `setup_ansible_user/defaults/main.yml`. You can keep the default username (_ansible_) and change the _password_ parameter. The password you set here will be used for creating ansible user on a remote server.
+      - In the script directory on the Admin Workstation, edit the config file `roles/setup-ansible-user/defaults/main.yml`. You can keep the default username (_ansible_) and change the _password_ parameter. The password you set here will be used for creating _ansible_ user on a remote server.
       - Go to a directory with Ansible script:
 
         `cd ~/sametime`
       - Set the helper script file as executable:
 
         `chmod u+x setup_ansible_user.sh`.
-      - Convert DOS-style end of line to Unix-style end of line:
-
-        `sed -i 's/\r$//' setup_ansible_user.sh`
       - Run the helper script:
 
         `./setup_ansible_user.sh master`.
@@ -337,21 +362,18 @@ The good thing is that for this step, we can use Ansible automation.
         _"master"_ is a node name from the Ansible inventory file (_hosts_). When asked, type the password for a root account on the remote server.
       - Use the script for all remote servers; use node name as a parameter. In the example case, it would be:
 
-        `./setup_ansible_user.sh node1`
-
-        `./setup_ansible_user.sh node2`
-
+        `./setup_ansible_user.sh node1`\
+        `./setup_ansible_user.sh node2`\
         ...
   - After you perform manual or automatic SSH configuration, check if you did it correctly:
 
-    `ssh ansible@master.example.com`
-
+    `ssh ansible@master.example.com`\
     `whoami`
 
     ... The response should be: _ansible_, and you should NOT be asked for a password.
 
-    `ssh master.example.com`
-
+    `exit`\
+    `ssh master.example.com`\
     `whoami`
 
     ... The same as above.
@@ -359,17 +381,17 @@ The good thing is that for this step, we can use Ansible automation.
 
     Now you can perform that simple ansible command again, this time without specifying username (_root_) and password. Ansible will use in SSH connectivity currently logged user on Admin Workstation (which is user _ansible_). It will not ask you for a password because it now uses the SSH personal key instead, which you just distributed to all remote servers.
 
+    `ansible masters -m ping`\
     `ansible all -m ping`
 
   - (Optional) Try other simple Ansible commands:
 
-    `ansible --list-hosts all`
-
-    `ansible all -m shell -a "hostname -f"`
-
-    `ansible all -m setup`
+    `ansible --list-hosts all`\
+    `ansible all -m shell -a "hostname -f"`\
+    `ansible masters -m setup`
 
 At the end of this chapter, your environment should look like this:
+
 ![Installation - step 5](img/install-5.png)
 
 ---
@@ -394,10 +416,10 @@ Trust me; you will need it.
 The beauty of automation is that you can run it as many times as you want. I develop the script that you can run it multiple times -- so if the script fails during the run, you can find the cause, fix it, and run the script again from the beginning. The cause for the failure could be some misconfiguration, wrong hostnames, IP addresses, usernames, or passwords.\
 Sometimes, it could be better to revert to this snapshot and start again with the correct configuration.
 
-The great part is that you only revert VMs with Kubernetes nodes, not Admin Workstation. The script, together with your custom configuration and parameters, is stored on the workstation, so you can quickly start again and let it deploy everything.
+The great part is that you only revert VMs with Kubernetes nodes, not Admin Workstation. Together with your custom configuration and parameters, the script is stored on the workstation, so you can quickly start again and let it deploy everything.
 
 ## 2. Enable MongoDB for Sametime Meetings usage
-Sametime Meetings stores some info into the MongoDB database. Since Sametime Community and Sametime Proxy also use MongoDB database, you use the same for Sametime Meetings. It is the easiest way; if you go this way, do not forget to open the MongoDB port (from all Sametime Meetings nodes to MongoDB server) in your firewall.
+Sametime Meetings stores some info into the MongoDB database. Since Sametime Community and Sametime Proxy also use the MongoDB database, you use the same for Sametime Meetings. It is the easiest way; if you go this way, do not forget to open the MongoDB port (from all Sametime Meetings nodes to MongoDB server) in your firewall.
 
 > **Note:** You can also decide to deploy a new MongoDB server dedicated just for Sametime Meetings. MongoDB installation is not part of this guide, but you can follow the detailed description in the official Sametime documentation.
 
@@ -416,17 +438,18 @@ Now you have to set all variables in file _vars.yml_. This file is located in th
 
 First, create your own _vars.yml_ file from the example file:
 
-`cp inventory.example.yml inventory.yml`
+`cd ~/sametime/vars`
+`cp vars.example.yml vars.yml`
 
-Now you can edit `vars.yml` file. Fill in the IP address of other Sametime components (Proxy server, MongoDB server). Enter a range of IP addresses that Kubernetes will use for exposing their services outside the cluster.
+Now you can edit `vars.yml` file. First, fill in the IP address of other Sametime components (Proxy server, MongoDB server). Next, enter a range of IP addresses that Kubernetes will use for exposing their services outside the cluster.
 
-> **Note:** Next to the vars.yml, there is a file `defaults.yml` in the same folder. You do not need to edit values in this file. It contains parameters shared by multiple script modules (roles), and you should change them only if you know what you are doing. On the other hand, you should inspect and update every parameter in `vars.yml`, because this config file contains parameters that describe your unique environment.
+> **Note:** Next to the vars.yml, a file `defaults.yml` is in the same folder. You do not need to edit values in this file. It contains parameters shared by multiple script modules (roles), and you should change them only if you know what you are doing. On the other hand, you should inspect and update every parameter in `vars.yml`, because this config file contains parameters that describe your unique environment.
 
 ## 4. Setup network connectivity
 In the Kubernetes cluster, each node has to be able to connect to other cluster members. It means each node has to resolve hostnames to IP addresses and "ping" other nodes.
 If you provide resolving via an internal DNS server, you just set this DNS server in network config on each of the nodes (Master and Workers).\
 If you cannot use an internal DNS server, you have to configure resolving via static `/etc/hosts` files on each node. And this is a good use case for Ansible: you can run a script that will configure hosts files automatically. It will not only save your time but also avoids misconfiguration caused by typos.
-- Go to a folder with the script
+- Go to the main script folder
 
   `cd ~/sametime`
 - First, check the current status of inter-nodes connectivity:
@@ -483,6 +506,7 @@ If the script finishes successfully, you will see the final installation report.
 - info whether the script created Let's Encrypt certificate for the service (production or staging)
 
 The report should look like this:
+
 ![Final install report](img/install-report.png)
 
 There is a chance that the script does not run successfully until the very end. It is NOT a problem. The script is composed the way that you can run it over and over again until it finishes with success.\
@@ -490,4 +514,5 @@ The cause of the script failure will probably be some misconfiguration in vars.y
 Try to find out the cause of the problem, fix it, and rerun the script.
 
 At the end of this chapter, your environment should look like this:
+
 ![Installation - step 6](img/install-6.png)

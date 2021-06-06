@@ -4,11 +4,13 @@
 - Check if you can connect to the Admin Workstation (running on Linux)
 
   `ssh ansible@192.168.10.139`
+  Close the session after successful login
 
-- Download the ZIP file to your Windows desktop. Unzip the package; it will expand into folders' structure starting with `sametime/sametime/..` .
+  `exit`
+- Download the ZIP file to your Windows desktop.
 - Copy files from Windows desktop to Linux server via scp command:
 
-  `scp -r ./sametime/* ansible@192.168.10.139:/home/ansible/`
+  `scp Sametime-Automation-main.zip ansible@192.168.10.139:/home/ansible`
 
 **Note:** If you connected from this Windows desktop to other virtual machines in the past, there is a chance that you already connected to a server with the same IP. That server was then decommissioned, and now a new server got the same IP address. Yet SSH fingerprint for the old server is still stored in your local file `C:\Users\User\\.ssh\known_hosts`. And now, if you try to connect to the new server, you see this warning message:
   ```
@@ -37,7 +39,7 @@
     Original contents retained as C:\Users\User/.ssh/known_hosts.old
   ```
   Now you can try the command again.
-  After you approve the new server fingerprint and type password for an ansible user, you should successfully log into your Linux server.
+  After you approve the new server fingerprint and type password for an ansible user, you should log into your Linux server successfully.
   ```
     The authenticity of host '192.168.10.140 (192.168.10.140)' can't be established.
     ECDSA key fingerprint is SHA256:ZNMV+RD2nIMNtm+nu93rvAABS9K1qWzSotYRsvlHVX0.
