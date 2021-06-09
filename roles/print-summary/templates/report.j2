@@ -3,10 +3,10 @@
         SAMETIME INSTALL - SUMMARY REPORT
       =====================================
 
-Sametime Meetings (webmmeting)
-------------------------------
+Sametime Meetings (webmeting)
+-----------------------------
 🖥️  URL:        https://{{ serverHostname }}     (IP: {{ ingress_external_ip.stdout }})
-👱  login:      usernames and password are managed in Sametime Community server
+👱  login:      usernames and passwords are managed by the Sametime Community server (Domino)
 
 Kubernetes Dashboard (maintenance)
 ----------------------------------
@@ -19,7 +19,7 @@ Kubernetes Dashboard (maintenance)
 🔑  token:      {{ dashboard_admin_token.stdout }}
 🔐  cert:       {{ dashboard_certificate_info | default('Certificate not managed by the script', true) }}
 
-Elasticsearch - Kibana (Logging)
+Elasticsearch - Kibana (logging)
 --------------------------------
 {% if elasticsearch_kibana_expose_type == 'loadbalancer' %}
 📃  URL:        https://{{ kibana_external_ip.stdout }}:{{ kibana_external_port.stdout }}     ( https://{{ elasticsearch_kibana_assigned_hostname }} )
