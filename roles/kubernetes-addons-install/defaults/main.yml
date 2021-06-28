@@ -4,7 +4,6 @@
 certmgr_repository: 'https://charts.jetstack.io'
 staging_issuer_server: 'https://acme-staging-v02.api.letsencrypt.org/directory'
 production_issuer_server: 'https://acme-v02.api.letsencrypt.org/directory'
-certmgr_email: 'petr.kunc@gmail.com'
 
 issuers_combinations:
   - { issuer_env: 'staging',
