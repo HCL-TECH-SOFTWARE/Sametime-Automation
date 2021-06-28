@@ -60,7 +60,7 @@ metallb_ip_range: '192.168.10.150-192.168.10.160'
 use_letsencypt_staging: false
 
 # Contact email for Let's Encrypt Certificates
-certmgr_email: 'petr.kunc@gmail.com'
+certmgr_email: 'admin@example.com'
 
 # Sametime Meetings is always exposed via Ingress. You cannot change the expose type.
 sametime_meetings_assigned_ip_address: '192.168.10.155'
