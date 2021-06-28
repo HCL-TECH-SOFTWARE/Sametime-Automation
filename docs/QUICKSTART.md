@@ -496,9 +496,12 @@ Start the main install script by running the command:
 
 That's it, just this one command. Now sit and watch it do the hard work. It will take about 20 minutes until the script will perform all the steps.
 
-**Note:** If you want to see more details during the script execution, start the script with verbose mode:
+If you want to see more details during the script execution, start the script with verbose mode:
 
 `ansible-playbook main.yml -v`
+
+> **Note:** You can also run the script not only in all-in-one mode but also in phases, one stage after another.
+Read more about [stages](stages.md).
 
 If the script finishes successfully, you will see the final installation report. It contains:
 - URLs for accessing exposed services (hostname and IP address)
