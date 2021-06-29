@@ -39,6 +39,6 @@ sametime_values_file: 'helm/values.yaml'
 
 # Path on Admin workstation computer
 package_dir: '{{ ansible_user_dir }}/sametime/package/'
-package_filename: 'Sametime_11.5_MeetingServer.zip'
+package_filename: 'Sametime_11.6_MeetingServer.zip'
 # Path on all Kubernetes nodes
 package_unpack_dir: '{{ ansible_user_dir }}/sametime/package/install/'
