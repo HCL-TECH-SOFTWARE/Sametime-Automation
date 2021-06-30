@@ -5,8 +5,13 @@
     - name: Generate keys
       expect:
         chdir: '{{ package_unpack_dir }}'
-        command: './generateSecrets.sh'
+        command: './prepareDeployment.sh'
         responses:
+          Enter fully qualified Meeting Server Name: '{{ serverHostname }}'
+          Enter Server Domain Name: '{{ jwtCookieDomain }}'
+          Enter Proxy Server Host: '{{ sametime_proxy_host }}'
+          Enter Proxy Server Port: '{{ sametime_proxy_port }}'
+          Enter video bridge: '{{ hostIp }}'
           Enter the Base64 encoded JWT_SECRET: ''
           Enter Mongo Host: '{{ mongo_host }}'
           Enter Mongo Port: '{{ mongo_port }}'
@@ -14,7 +19,7 @@
           Enter Mongo Admin User Password: '{{ mongo_password }}'
         timeout: 120
       register: keys_result
-      changed_when: '"created" in keys_result.stdout'
+      changed_when: '"Writing" in keys_result.stdout'
       failed_when:
         - '"already added" not in keys_result.stdout'
         - keys_result.rc != 0
