@@ -1,6 +1,6 @@
 # HCL Sametime Meetings deployment on Kubernetes
 
-A set of Ansible scripts for automated deployment of HCL Sametime Meetings on on-prem Kubernetes.
+A set of Ansible scripts for automated deployment of HCL Sametime Meetings 11.6 on on-prem Kubernetes.
 
 ## Description
 New HCL Sametime Meetings runs in a containerized environment - Docker or Kubernetes. Docker is suitable for smaller deployments and lower workload; deployment is easier. Sametime on Kubernetes is harder to deploy but can handle a bigger workload due to Kubernetes scaling possibilities.
@@ -38,12 +38,12 @@ And this is where this automation script can help you - it does the orange part.
 
 ### What does the script does NOT do
 
-  - Install MongoDB database - [link](https://help.hcltechsw.com/sametime/11.5/admin/installing_mongodb.html)
-  - Install Sametime Community server - [link](https://help.hcltechsw.com/sametime/11.5/admin/installing_sametime_community.html)
-  - Install Sametime Proxy server - [link](https://help.hcltechsw.com/sametime/11.5/admin/installing_sametime_proxy.html)
-  - Enable MongoDB for Sametime Meetings usage (you will be instructed to do this manually) - [link](https://help.hcltechsw.com/sametime/11.5/admin/enable_mongodb_meeting.html)
-  - Enable Sametime Community for Meetings - [link](https://help.hcltechsw.com/sametime/11.5/admin/enable_sametime_meeting.html)
-  - Enable Sametime Proxy for Meetings - [link](https://help.hcltechsw.com/sametime/11.5/admin/enable_sametime_meeting_proxy.html)
+  - Install MongoDB database - [link](https://help.hcltechsw.com/sametime/11.6/admin/installing_mongodb.html)
+  - Install Sametime Community server - [link](https://help.hcltechsw.com/sametime/11.6/admin/installing_sametime_community.html)
+  - Install Sametime Proxy server - [link](https://help.hcltechsw.com/sametime/11.6/admin/installing_sametime_proxy.html)
+  - Enable MongoDB for Sametime Meetings usage (you will be instructed to do this manually) - [link](https://help.hcltechsw.com/sametime/11.6/admin/enable_mongodb_meeting.html)
+  - Enable Sametime Community for Meetings - [link](https://help.hcltechsw.com/sametime/11.6/admin/enable_sametime_meeting.html)
+  - Enable Sametime Proxy for Meetings - [link](https://help.hcltechsw.com/sametime/11.6/admin/enable_sametime_meeting_proxy.html)
 
 ## Quickstart
 If you are ready, follow the instructions in the [QUICKSTART Guide](docs/QUICKSTART.md).
