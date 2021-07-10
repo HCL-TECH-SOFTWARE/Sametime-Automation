@@ -24,6 +24,9 @@
 - name: Get certificates info
   import_tasks: get_certificate_info.yml
 
+- name: Get JWT info
+  import_tasks: get_jwt_info.yml
+
 - name: Print summary report
   import_tasks: print_summary.yml
 

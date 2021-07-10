@@ -1,0 +1,9 @@
+# get_jwt_info.yml
+---
+# -------------- Gathering JWT info --------------
+
+- name: Get Sametime JWT secret from file
+  shell:
+    chdir: '{{ package_unpack_dir }}/helm/templates'
+    cmd: "cat meetings-secrets.yaml | grep JwtSecret | sed 's/^[^:]*: //'"
+  register: sametime_jwt_secret
