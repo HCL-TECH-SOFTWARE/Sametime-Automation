@@ -33,6 +33,18 @@
     state: absent
   ignore_errors: true
 
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until all Dashboard pods are Ready
+  command: 'kubectl wait --namespace={{ dashboard_namespace }} --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
 - name: Get Dashboard service name
   command:
     cmd: 'kubectl get service --selector="k8s-app=kubernetes-dashboard" -A -ojsonpath="{.items..metadata.name}"'
