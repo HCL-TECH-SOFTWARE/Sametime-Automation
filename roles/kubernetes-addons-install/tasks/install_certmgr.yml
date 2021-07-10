@@ -43,6 +43,18 @@
     - certmgr_install_result.rc != 0
   when: install_certmgr
 
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until all certmgr pods are Ready
+  command: 'kubectl wait --namespace={{ certmgr_namespace }} --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
 # -------------- Configure ClusterIssuers --------------
 
 - name: Register clusterissuers for Let's Encrypt
