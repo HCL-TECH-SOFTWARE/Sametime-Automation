@@ -28,6 +28,18 @@
     - '"cannot re-use a name that is still in use" not in monitoring_operator_install_result.stderr'
     - monitoring_operator_install_result.rc != 0
 
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until all Prometheus pods are Ready
+  command: 'kubectl wait --namespace={{ monitoring_namespace }} --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
 - name: Get Grafana service name
   command:
     cmd: 'kubectl get service --selector="app.kubernetes.io/name=grafana" -A -ojsonpath="{.items..metadata.name}" -n {{ monitoring_namespace }}'
