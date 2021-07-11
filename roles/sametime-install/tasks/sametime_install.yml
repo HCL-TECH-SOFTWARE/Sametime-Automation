@@ -12,7 +12,7 @@
           Enter Proxy Server Host: '{{ sametime_proxy_host }}'
           Enter Proxy Server Port: '{{ sametime_proxy_port }}'
           Enter video bridge: '{{ hostIp }}'
-          Enter the Base64 encoded JWT_SECRET: ''
+          Enter the Base64 encoded JWT_SECRET: '{{ jwt_secret }}'
           Enter Mongo Host: '{{ mongo_host }}'
           Enter Mongo Port: '{{ mongo_port }}'
           Enter Mongo Admin User Name: '{{ mongo_user }}'

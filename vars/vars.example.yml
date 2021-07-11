@@ -93,7 +93,8 @@ add_IPs_into_sametime_manifests: false
 # Used in: prepare_install_package, print_summary
 serverHostname: 'meetings.example.com'
 jwtCookieDomain: 'example.com'
-hostIp: ''        ## keep empty
+jwt_secret: ''   ## when blank, JWT secret will be generated
+hostIp: ''       ## keep empty
 
 # Used in: prepare-server
 disable_firewall: true              ## current version tested only with 'true', which means disabled firewall
