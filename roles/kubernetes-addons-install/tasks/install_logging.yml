@@ -72,6 +72,18 @@
     - '"cannot re-use a name that is still in use" not in logging_operator_install_result.stderr'
     - logging_operator_install_result.rc != 0
 
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until Elasticsearch Operator pod is Ready
+  command: 'kubectl wait --namespace=elastic-system --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
 # -------------- Install Elasicsearch Cluster (Elasticsearch, Filebeat, Kibana) --------------
 
 - name: Download Elasticsearch cloud manifest
@@ -98,6 +110,22 @@
     path: '{{ package_unpack_dir }}elasticsearch-cloud.yml'
     state: absent
   ignore_errors: true
+
+- name: Wait for 1 minute
+  pause:
+    minutes: 1
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
+
+- name: Wait until all Elasticsearch pods are Ready
+  command: 'kubectl wait --namespace=default --for=condition=Ready pods --all --timeout=120s'
+  changed_when: false
+
+- name: Get current pods status
+  command: 'kubectl get pods -A'
+  changed_when: false
 
 - name: Get Kibana service name
   command:
