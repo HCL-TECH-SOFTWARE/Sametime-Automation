@@ -1,6 +1,7 @@
 # main.yml
 ---
 # Kubernetes on RedHat parameters
+_kubernetes_version: '1.21'
 kubernetes_yum_repo_url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
 
 kubernetes_yum_gpg_keys:
@@ -8,9 +9,9 @@ kubernetes_yum_gpg_keys:
   - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 
 kubernetes_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
+  - 'kubelet-{{ _kubernetes_version }}*'
+  - 'kubeadm-{{ _kubernetes_version }}*'
+  - 'kubectl-{{ _kubernetes_version }}*'
 
 kubernetes_calico_manifest_file: https://docs.projectcalico.org/v3.17/manifests/calico.yaml
 
