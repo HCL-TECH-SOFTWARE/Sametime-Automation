@@ -1,39 +1,38 @@
-# configure_firewalld.yml
 ---
 - name: Install firewalld
   become: true
-  package:
+  ansible.builtin.package:
     name: firewalld
     state: present
 
 - name: Start and enable firewalld service
   become: true
-  service:
+  ansible.builtin.service:
     name: firewalld
     state: started
     enabled: true
 
-- name: Open ports in firewalld on Master node
+- name: Open ports in firewalld on Control Plane
   become: true
-  firewalld:
+  ansible.posix.firewalld:
     port: '{{ item }}'
     permanent: true
-    state: enabled
-  loop: '{{ firewalld_master_ports }}'
-  when: inventory_hostname in groups['masters']
+    state: disabled
+  loop: '{{ firewalld_control_plane_ports }}'
+  when: inventory_hostname in groups['control_planes']
 # check ports with command: sudo firewall-cmd --list-all
 
-- name: Open ports in firewalld on Workers nodes
+- name: Open ports in firewalld on a node
   become: true
-  firewalld:
+  ansible.posix.firewalld:
     port: '{{ item }}'
     permanent: true
-    state: enabled
-  loop: '{{ firewalld_worker_ports }}'
-  when: inventory_hostname in groups['workers']
+    state: disabled
+  loop: '{{ firewalld_node_ports }}'
+  when: inventory_hostname in groups['nodes']
 
 - name: Reload firewalld
   become: true
-  service:
+  ansible.builtin.service:
     name: firewalld
     state: reloaded

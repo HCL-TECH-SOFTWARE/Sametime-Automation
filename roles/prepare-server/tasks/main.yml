@@ -1,38 +1,14 @@
-# main.yml
 ---
-- name: Log progress
-  vars:
-    log_message: '[Prepare Server] Starting'
-  include_role:
-    name: common
-    tasks_from: log
-
-# ------------------------------------------------------
-
 - name: Configure OS
-  import_tasks: configure_os.yml
+  ansible.builtin.import_tasks: configure_os.yml
 
-- name: Configure OS - RedHat only
-  include_tasks:  configure_os_redhat.yml
-  when: ansible_os_family == 'RedHat'
+- name: Configure SELinux
+  ansible.builtin.import_tasks: selinux.yml
 
 - name: Configure firewall
-  include_tasks: configure_firewalld.yml
-  when:
-    - ansible_os_family == 'RedHat'
-    - not disable_firewall
+  ansible.builtin.import_tasks: configure_firewalld.yml
+  when: not disable_firewall
 
 - name: Disable firewall
-  include_tasks: disable_firewalld.yml
-  when:
-    - ansible_os_family == 'RedHat'
-    - disable_firewall
-
-# ------------------------------------------------------
-
-- name: Log progress
-  vars:
-    log_message: '[Prepare Server] Ending'
-  include_role:
-    name: common
-    tasks_from: log
+  ansible.builtin.import_tasks: disable_firewalld.yml
+  when: disable_firewall

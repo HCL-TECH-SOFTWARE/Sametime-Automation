@@ -1,0 +1,12 @@
+---
+- name: Configure SELinux
+  become: true
+  ansible.posix.selinux:
+    state: '{{ selinux }}'
+    policy: targeted
+  register: selinux_result
+
+- name: Restart OS when needed
+  become: true
+  ansible.builtin.reboot:
+  when: selinux_result.reboot_required

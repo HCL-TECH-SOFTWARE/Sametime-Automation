@@ -1,6 +1,13 @@
-# main.yml
 ---
-firewalld_master_ports:
+packages_to_install:
+  - tar
+  - nc
+  - net-tools
+  - openldap-clients
+  - unzip
+  - chrony
+
+firewalld_control_plane_ports:
   - 6443/tcp        # kubernetes
   - 2379-2380/tcp   # kubernetes
   - 10250/tcp       # kubernetes
@@ -18,7 +25,7 @@ firewalld_master_ports:
   - 9094/tcp        # prometheus
   - 9100/tcp        # prometheus
 
-firewalld_worker_ports:
+firewalld_node_ports:
   - 10250/tcp       # kubernetes
   - 10255/tcp       # kubernetes
   - 30000-32767/tcp # kubernetes

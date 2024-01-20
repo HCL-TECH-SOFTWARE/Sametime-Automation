@@ -1,14 +1,11 @@
-# disable_firewalld.yml
 ---
-- name: Install firewalld
-  become: true
-  package:
-    name: firewalld
-    state: present
-
 - name: Stop and disable firewalld service
   become: true
-  service:
+  ansible.builtin.service:
     name: firewalld
     state: stopped
     enabled: false
+  register: firewalld_result
+  failed_when:
+    - firewalld_result.failed == true
+    - '"Could not find the requested service firewalld" not in firewalld_result.msg'

@@ -1,12 +1,47 @@
-# configure_os.yml
+# configure_os_redhat.yml
 ---
-- name: Disable SELinux
+- name: Set instance hostname
   become: true
-  selinux:
-    state: disabled
-  register: selinux_result
+  ansible.builtin.hostname:
+    name: '{{ ansible_host }}'
 
-- name: Restart OS when needed
+- name: Insert hostname into /etc/hosts file
   become: true
-  reboot:
-  when: selinux_result.reboot_required
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '{{ ansible_host }}'
+    line: '127.0.0.1 {{ ansible_host }} {{ ansible_host.split(".")[0] }}'
+    state: present
+
+- name: Update all packages (yum)
+  become: true
+  ansible.builtin.package:
+    name: '*'
+    state: latest
+    update_cache: true
+    exclude:
+      - docker*
+      - kube*
+
+- name: Install required packages
+  become: true
+  ansible.builtin.package:
+    name: '{{ packages_to_install }}'
+    state: present
+
+# - name: Enable EPEL repository
+#   become: true
+#   package:
+#     name: epel-release
+#     state: latest
+
+# - name: Install python-pip
+#   become: true
+#   package:
+#     name: python-pip
+#     state: latest
+
+# - name: Install pip pexpect
+#   become: true
+#   pip:
+#     name: pexpect
