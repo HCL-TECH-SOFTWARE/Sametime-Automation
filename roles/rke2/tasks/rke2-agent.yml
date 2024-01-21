@@ -1,0 +1,67 @@
+---
+- name: Read token from vars, when not obtained directly from the Control Plane
+  ansible.builtin.set_fact:
+    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token"] | default(token) }}'
+
+- name: Check port forwarding status
+  ansible.builtin.command:
+    cmd: cat /proc/sys/net/ipv4/ip_forward
+  register: forward_result
+  changed_when: forward_result.rc != 0
+
+- name: Set port forwarding if not enabled
+  become: true
+  ansible.posix.sysctl:
+    name: '{{ item.field }}'
+    value: '{{ item.value }}'
+    sysctl_file: /etc/sysctl.d/90-rke2.conf
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - { field: net.ipv4.conf.all.forwarding, value: 1 }
+    - { field: net.ipv6.conf.all.forwarding, value: 1 }
+  when:
+    - set_port_forwarding
+    - forward_result.stdout != "1"
+
+- name: Download install script
+  ansible.builtin.get_url:
+    url: '{{ rke2_install_url }}'
+    dest: /tmp/install.sh
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Install RKE2 as an Agent
+  become: true
+  environment:
+    INSTALL_RKE2_CHANNEL: '{{ rke2_channel }}'
+    INSTALL_RKE2_TYPE: 'agent'
+  ansible.builtin.shell:
+    cmd: '/tmp/install.sh'
+    creates: /usr/bin/rke2
+  register: rke2_result
+  changed_when:
+    - '"Nothing to do" not in rke2_result.stdout'
+    - '"skipped" not in rke2_result.stdout'
+
+- name: Get RKE2 Server hostname
+  vars:
+    server_name: '{{ groups["control_planes"][0] }}'
+  ansible.builtin.set_fact:
+    server_hostname: '{{ hostvars[server_name].ansible_host }}'
+
+- name: Copy and customize config files
+  become: true
+  ansible.builtin.template:
+    src: '{{ item }}'
+    dest: '/etc/rancher/rke2/{{ item }}'
+    mode: u=rw,g=,o=
+  loop:
+    - config.yaml
+
+- name: Start service rke2-agent and enable for autostart
+  become: true
+  ansible.builtin.service:
+    name: rke2-agent
+    state: started
+    enabled: true

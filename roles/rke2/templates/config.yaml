@@ -1,0 +1,23 @@
+write-kubeconfig-mode: "0600"
+tls-san:
+  - "{{ ansible_host }}"
+node-label:
+{% if 'control_planes' in group_names %}
+  - "nodetype=master"
+{% else %}
+  - "nodetype=worker"
+{% endif %}
+{% if 'control_planes' in group_names %}
+enable-servicelb: true        # for enabling ServiceLB load balancer
+etcd-expose-metrics: true     # for scraping data in prometheus
+kube-controller-manager-arg:  # for scraping datas via prometheus
+  - "bind-address=0.0.0.0"
+kube-scheduler-arg:           # for scraping datas on prometheus
+  - "bind-address=0.0.0.0"
+# # Disallow workload on control node when we have at least one agent node
+# node-taint:
+#   - "CriticalAddonsOnly=true:NoExecute"
+{% else %}
+server: https://{{ server_hostname }}:9345
+token: {{ access_token }}
+{% endif %}

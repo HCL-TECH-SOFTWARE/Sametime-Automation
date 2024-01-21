@@ -1,0 +1,3 @@
+set_port_forwarding: true
+rke2_channel: latest          # Options: stable, latest
+token: ''                     # If empty, rke2-server task must run together with rke2-agent tasks.

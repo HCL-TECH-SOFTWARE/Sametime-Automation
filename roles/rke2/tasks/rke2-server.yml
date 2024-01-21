@@ -1,0 +1,93 @@
+---
+- name: Check port forwarding status
+  ansible.builtin.command:
+    cmd: cat /proc/sys/net/ipv4/ip_forward
+  register: forward_result
+  changed_when: forward_result.rc != 0
+
+- name: Set port forwarding if not enabled
+  become: true
+  ansible.posix.sysctl:
+    name: '{{ item.field }}'
+    value: '{{ item.value }}'
+    sysctl_file: /etc/sysctl.d/90-rke2.conf
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - { field: net.ipv4.conf.all.forwarding, value: 1 }
+    - { field: net.ipv6.conf.all.forwarding, value: 1 }
+  when:
+    - set_port_forwarding
+    - forward_result.stdout != "1"
+
+- name: Download install script
+  ansible.builtin.get_url:
+    url: '{{ rke2_install_url }}'
+    dest: /tmp/install.sh
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Install RKE2 as a Server
+  become: true
+  environment:
+    INSTALL_RKE2_CHANNEL: '{{ rke2_channel }}'
+  ansible.builtin.shell:
+    cmd: '/tmp/install.sh'
+    creates: /usr/bin/rke2
+  register: rke2_result
+  changed_when:
+    - '"Nothing to do" not in rke2_result.stdout'
+    - '"skipped" not in rke2_result.stdout'
+
+- name: Copy and customize config files
+  become: true
+  ansible.builtin.template:
+    src: '{{ item }}'
+    dest: '/etc/rancher/rke2/{{ item }}'
+    mode: 'u=rw,g=,o='
+  loop:
+    - config.yaml
+
+- name: Start service rke2-server and enable for autostart
+  become: true
+  ansible.builtin.service:
+    name: rke2-server
+    state: started
+    enabled: true
+
+- name: Creating a symlink for kubectl
+  become: true
+  ansible.builtin.file:
+    src: '{{ rke2_kubectl_path }}'
+    dest: /usr/bin/kubectl
+    state: link
+
+- name: Create .kube in user's HOME directorydirectory
+  ansible.builtin.file:
+    path: '~/.kube'
+    state: directory
+    mode: 'u=rwx,g=,o='
+
+- name: Copy kubeconfig file to a user's .kube directory
+  become: true
+  ansible.builtin.copy:
+    src: '{{ rke2_kubeconfig_path }}'
+    dest: /home/{{ ansible_user_id }}/.kube/config
+    owner: '{{ ansible_real_user_id }}'
+    group: '{{ ansible_real_group_id }}'
+    remote_src: true
+    mode: 'u=rw,g=,o='
+
+- name: Get content of token file
+  become: true
+  ansible.builtin.command: 'cat {{ rke2_token_path }}'
+  register: token_file_result
+  changed_when: token_file_result.rc != 0
+
+- name: Store the RKE2 token in a variable
+  ansible.builtin.set_fact:
+    rke2_token: '{{ token_file_result.stdout }}'
+
+- name: Print the RKE2 token
+  ansible.builtin.debug:
+    msg: 'Use the following token to connect RKE2 Agent notes to this Server: {{ rke2_token }}'
