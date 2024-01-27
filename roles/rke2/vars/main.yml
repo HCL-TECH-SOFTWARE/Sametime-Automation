@@ -1,3 +1,4 @@
-set_port_forwarding: true
-rke2_channel: latest          # Options: stable, latest
-token: ''                     # If empty, rke2-server task must run together with rke2-agent tasks.
+rke2_install_url: https://get.rke2.io
+rke2_kubectl_path: /var/lib/rancher/rke2/bin/kubectl
+rke2_kubeconfig_path: /etc/rancher/rke2/rke2.yaml
+rke2_token_path: /var/lib/rancher/rke2/server/node-token

@@ -1,0 +1,9 @@
+---
+- name: Print inventory info
+  ansible.builtin.debug:
+    msg: |
+      - All hosts the play should run:        {{ ansible_play_hosts_all | to_yaml }}
+      - All hosts the play will acutally run: {{ ansible_play_batch | to_yaml }}
+    verbosity: 1
+  delegate_to: localhost
+  run_once: true

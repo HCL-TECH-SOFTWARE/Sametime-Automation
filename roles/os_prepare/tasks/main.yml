@@ -1,14 +1,14 @@
 ---
 - name: Configure OS
-  ansible.builtin.import_tasks: configure_os.yml
+  ansible.builtin.import_tasks: os_configure.yml
 
 - name: Configure SELinux
   ansible.builtin.import_tasks: selinux.yml
 
 - name: Configure firewall
-  ansible.builtin.import_tasks: configure_firewalld.yml
+  ansible.builtin.import_tasks: firewalld_configure.yml
   when: not disable_firewall
 
 - name: Disable firewall
-  ansible.builtin.import_tasks: disable_firewalld.yml
+  ansible.builtin.import_tasks: firewalld_disable.yml
   when: disable_firewall

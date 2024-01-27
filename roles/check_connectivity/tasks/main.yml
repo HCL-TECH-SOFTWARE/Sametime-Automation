@@ -1,0 +1,4 @@
+# main.yml
+---
+- name: Check connectivity
+  ansible.builtin.import_tasks: check_connectivity.yml

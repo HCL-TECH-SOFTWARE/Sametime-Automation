@@ -1,0 +1,47 @@
+---
+- name: Print inventory and OS info
+  ansible.builtin.debug:
+    msg: |
+      INFO FROM INVENTORY:
+      - All hosts the play should run: {{ ansible_play_hosts_all | to_yaml }}
+      - All hosts the play will acutally run: {{ ansible_play_batch | to_yaml }}
+      - Inventory hostname (hostname from inventory): {{ inventory_hostname }}
+      - Host (FQDN or IP from inventory): {{ ansible_host }}
+      - Local Ansible user: {{ ansible_user | default(lookup('env', 'USER')) }}
+      - Remote Ansible user: {{ ansible_env.USER }}
+
+      INFO FROM OS:
+      - Nodename (fully qualified hostname from system): {{ ansible_nodename }}
+      - Hostname (unqualified hostname from system): {{ ansible_hostname }}
+      - FQDN (from system): {{ ansible_fqdn }}
+      - IP addreses: {{ ansible_all_ipv4_addresses | to_yaml }}
+      - Ansible default IP address: {{ ansible_default_ipv4.address }}
+      - Remote Ansible user (ID): {{ ansible_user_id }} ({{ ansible_user_uid }})
+      - Ansible Real user/group ID: {{ ansible_real_user_id }} / {{ ansible_real_group_id }}
+      - Ansible Effective user/group: {{ ansible_effective_user_id }} / {{ ansible_effective_group_id }}
+      - OS Family: {{ ansible_os_family }}
+      - Distribution: {{ ansible_distribution }}
+      - Major version: {{ ansible_distribution_major_version }}
+      - Release: {{ ansible_distribution_release }}
+      - Distribution Version: {{ ansible_distribution_version }}
+      - Kernel: {{ ansible_kernel }}
+      - Architecture: {{ ansible_architecture }}
+      - CPU: {{ ansible_processor | to_yaml }}
+      - Number vCPUs: {{ ansible_processor_vcpus }}
+      - RAM: {{ ansible_memtotal_mb }}
+      - SWAP: {{ ansible_memory_mb.swap.total }}
+      - SELinux: {{ ansible_selinux }}
+      - Python: {{ ansible_python_version }}
+      - User ID (on remote server): {{ ansible_user_id }}
+      - User home dir: {{ ansible_user_dir }}
+      - User shell: {{ ansible_user_shell }}
+      - Package manager: {{ ansible_pkg_mgr }}
+      - Disk '/' - total: {{ (ansible_mounts | json_query("[?mount=='/'].size_total"))[0] | human_readable }}
+      - Disk '/' - available: {{ (ansible_mounts | json_query("[?mount=='/'].size_available"))[0] | human_readable }}
+
+    verbosity: 1
+
+- name: Print on first in Control Plane group
+  ansible.builtin.debug:
+    msg: 'I am the first server in Control Plane group, I will perform all Kubernetes commands.'
+  when: inventory_hostname == groups['control_planes'][0]

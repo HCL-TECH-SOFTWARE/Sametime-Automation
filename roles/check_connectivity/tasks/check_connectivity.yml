@@ -1,0 +1,49 @@
+# check_connectivity.yml
+---
+# - name: Check Kubernetes servers availability
+#   ansible.builtin.include_tasks: check_server.yml
+#   vars:
+#     server: '{{ item }}'
+#   loop: "{{ groups['all'] }}"
+
+- name: Check LDAP server availability
+  block:
+    - name: Check LDAP server availability
+      ansible.builtin.wait_for:
+        host: '{{ ldap_host }}'
+        port: '{{ ldap_port }}'
+        state: started
+        delay: 0
+        timeout: 3
+  rescue:
+    - name: ...handling connection error
+      ansible.builtin.debug:
+        msg: 'FAILED: Cannot connect to MongoDB server on address: {{ ldap_host }}:{{ ldap_port }}'
+
+- name: Check MongoDB server availability
+  block:
+    - name: Check MongoDB server availability
+      ansible.builtin.wait_for:
+        host: '{{ mongo_host }}'
+        port: '{{ mongo_port }}'
+        state: started
+        delay: 0
+        timeout: 3
+  rescue:
+    - name: ...handling connection error
+      ansible.builtin.debug:
+        msg: 'FAILED: Cannot connect to MongoDB server on address: {{ mongo_host }}:{{ mongo_port }}'
+
+# - name: Check Sametime Proxy server availability
+#   vars:
+#     proxy_url: 'https://{{ sametime_proxy_host }}:{{ sametime_proxy_port }}'
+#   block:
+#     - name: Check Sametime Proxy server availability
+#       uri:
+#         url: '{{ proxy_url }}'
+#         status_code: [200, 302]
+#         validate_certs: false
+#   rescue:
+#     - name: ...handling connection error
+#       debug:
+#         msg: 'FAILED: Cannot connect to Sametime Proxy server on address: {{ proxy_url }}'
