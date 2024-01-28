@@ -1,7 +1,15 @@
 ---
 - name: Read token from vars, when not obtained directly from the Control Plane
   ansible.builtin.set_fact:
-    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token"] | default(token) }}'
+    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token_created"] | default(rke2_token) }}'
+
+- name: RKE2 token must exist to setup RKE2 Afent node
+  ansible.builtin.assert:
+    that:
+      - access_token is defined
+      - access_token | trim | length > 0
+    fail_msg: '"rke2_token" must be either created by rke2_server.yml or entered manually as a variable in vars.yml.'
+    success_msg: '"rke2_token" is defined, RKE2 Agent can be created now.'
 
 - name: Check port forwarding status
   ansible.builtin.command:
@@ -22,8 +30,17 @@
     - { field: net.ipv4.conf.all.forwarding, value: 1 }
     - { field: net.ipv6.conf.all.forwarding, value: 1 }
   when:
-    - set_port_forwarding
+    - rke2_set_port_forwarding
     - forward_result.stdout != "1"
+
+- name: Copy excludes file for NetworkManager
+  become: true
+  ansible.builtin.copy:
+    src: files/rke2-canal.conf
+    dest: /etc/NetworkManager/conf.d/rke2-canal.conf
+    mode: u=rw,g=r,o=r
+  notify:
+    - Reload NetworkManager
 
 - name: Download install script
   ansible.builtin.get_url:

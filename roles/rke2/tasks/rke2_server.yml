@@ -18,8 +18,17 @@
     - { field: net.ipv4.conf.all.forwarding, value: 1 }
     - { field: net.ipv6.conf.all.forwarding, value: 1 }
   when:
-    - set_port_forwarding
+    - rke2_set_port_forwarding
     - forward_result.stdout != "1"
+
+- name: Copy excludes file for NetworkManager
+  become: true
+  ansible.builtin.copy:
+    src: files/rke2-canal.conf
+    dest: /etc/NetworkManager/conf.d/rke2-canal.conf
+    mode: u=rw,g=r,o=r
+  notify:
+    - Reload NetworkManager
 
 - name: Download install script
   ansible.builtin.get_url:
@@ -86,8 +95,8 @@
 
 - name: Store the RKE2 token in a variable
   ansible.builtin.set_fact:
-    rke2_token: '{{ token_file_result.stdout }}'
+    rke2_token_created: '{{ token_file_result.stdout }}'
 
 - name: Print the RKE2 token
   ansible.builtin.debug:
-    msg: 'Use the following token to connect RKE2 Agent notes to this Server: {{ rke2_token }}'
+    msg: 'Use the following token to connect RKE2 Agent notes to this Server: {{ rke2_token_created }}'
