@@ -1,15 +1,15 @@
 ---
 - name: Read token from vars, when not obtained directly from the Control Plane
   ansible.builtin.set_fact:
-    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token_created"] | default(rke2_token) }}'
+    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token_created"] | default(rke2__token) }}'
 
 - name: RKE2 token must exist to setup RKE2 Afent node
   ansible.builtin.assert:
     that:
       - access_token is defined
       - access_token | trim | length > 0
-    fail_msg: '"rke2_token" must be either created by rke2_server.yml or entered manually as a variable in vars.yml.'
-    success_msg: '"rke2_token" is defined, RKE2 Agent can be created now.'
+    fail_msg: '"rke2__token" must be either created by rke2_server.yml or entered manually as a variable in vars.yml.'
+    success_msg: '"rke2__token" is defined, RKE2 Agent can be created now.'
 
 - name: Check port forwarding status
   ansible.builtin.command:
@@ -30,7 +30,7 @@
     - { field: net.ipv4.conf.all.forwarding, value: 1 }
     - { field: net.ipv6.conf.all.forwarding, value: 1 }
   when:
-    - rke2_set_port_forwarding
+    - rke2__set_port_forwarding
     - forward_result.stdout != "1"
 
 - name: Copy excludes file for NetworkManager
@@ -44,14 +44,14 @@
 
 - name: Download install script
   ansible.builtin.get_url:
-    url: '{{ rke2_install_url }}'
+    url: '{{ rke2__install_url }}'
     dest: /tmp/install.sh
     mode: 'u=rwx,g=rx,o=rx'
 
 - name: Install RKE2 as an Agent
   become: true
   environment:
-    INSTALL_RKE2_CHANNEL: '{{ rke2_channel }}'
+    INSTALL_RKE2_CHANNEL: '{{ rke2__channel }}'
     INSTALL_RKE2_TYPE: 'agent'
   ansible.builtin.shell:
     cmd: '/tmp/install.sh'

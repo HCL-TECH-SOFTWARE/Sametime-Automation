@@ -18,7 +18,7 @@
     - { field: net.ipv4.conf.all.forwarding, value: 1 }
     - { field: net.ipv6.conf.all.forwarding, value: 1 }
   when:
-    - rke2_set_port_forwarding
+    - rke2__set_port_forwarding
     - forward_result.stdout != "1"
 
 - name: Copy excludes file for NetworkManager
@@ -32,14 +32,14 @@
 
 - name: Download install script
   ansible.builtin.get_url:
-    url: '{{ rke2_install_url }}'
+    url: '{{ rke2__install_url }}'
     dest: /tmp/install.sh
     mode: 'u=rwx,g=rx,o=rx'
 
 - name: Install RKE2 as a Server
   become: true
   environment:
-    INSTALL_RKE2_CHANNEL: '{{ rke2_channel }}'
+    INSTALL_RKE2_CHANNEL: '{{ rke2__channel }}'
   ansible.builtin.shell:
     cmd: '/tmp/install.sh'
     creates: /usr/bin/rke2
@@ -67,7 +67,7 @@
 - name: Creating a symlink for kubectl
   become: true
   ansible.builtin.file:
-    src: '{{ rke2_kubectl_path }}'
+    src: '{{ rke2__kubectl_path }}'
     dest: /usr/bin/kubectl
     state: link
 
@@ -80,7 +80,7 @@
 - name: Copy kubeconfig file to a user's .kube directory
   become: true
   ansible.builtin.copy:
-    src: '{{ rke2_kubeconfig_path }}'
+    src: '{{ rke2__kubeconfig_path }}'
     dest: /home/{{ ansible_user_id }}/.kube/config
     owner: '{{ ansible_real_user_id }}'
     group: '{{ ansible_real_group_id }}'
@@ -89,7 +89,7 @@
 
 - name: Get content of token file
   become: true
-  ansible.builtin.command: 'cat {{ rke2_token_path }}'
+  ansible.builtin.command: 'cat {{ rke2__token_path }}'
   register: token_file_result
   changed_when: token_file_result.rc != 0
 

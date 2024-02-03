@@ -1,4 +1,4 @@
-rke2_install_url: https://get.rke2.io
-rke2_kubectl_path: /var/lib/rancher/rke2/bin/kubectl
-rke2_kubeconfig_path: /etc/rancher/rke2/rke2.yaml
-rke2_token_path: /var/lib/rancher/rke2/server/node-token
+rke2__install_url: https://get.rke2.io
+rke2__kubectl_path: /var/lib/rancher/rke2/bin/kubectl
+rke2__kubeconfig_path: /etc/rancher/rke2/rke2.yaml
+rke2__token_path: /var/lib/rancher/rke2/server/node-token
