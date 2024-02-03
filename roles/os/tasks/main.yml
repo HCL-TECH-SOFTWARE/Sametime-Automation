@@ -7,8 +7,8 @@
 
 - name: Configure firewall
   ansible.builtin.import_tasks: firewalld_configure.yml
-  when: not disable_firewall
+  when: not os__disable_firewall
 
 - name: Disable firewall
   ansible.builtin.import_tasks: firewalld_disable.yml
-  when: disable_firewall
+  when: os__disable_firewall

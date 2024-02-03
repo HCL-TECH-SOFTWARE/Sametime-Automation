@@ -2,7 +2,7 @@
 - name: Configure SELinux
   become: true
   ansible.posix.selinux:
-    state: '{{ selinux }}'
+    state: '{{ os__selinux }}'
     policy: targeted
   register: selinux_result
 

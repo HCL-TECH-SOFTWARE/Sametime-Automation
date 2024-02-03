@@ -1,0 +1,2 @@
+os__disable_firewall: true     # the current version tested only with 'true', which means firewall is disabled
+os__selinux: disabled          # enforcing, permissive, disabled

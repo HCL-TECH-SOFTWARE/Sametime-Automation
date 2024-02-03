@@ -26,7 +26,7 @@
 - name: Install required packages
   become: true
   ansible.builtin.package:
-    name: '{{ packages_to_install }}'
+    name: '{{ os__packages_to_install }}'
     state: present
 
 # - name: Enable EPEL repository

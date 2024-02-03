@@ -18,7 +18,7 @@
     port: '{{ item }}'
     permanent: true
     state: disabled
-  loop: '{{ firewalld_control_plane_ports }}'
+  loop: '{{ os__firewalld_control_plane_ports }}'
   when: inventory_hostname in groups['control_planes']
 # check ports with command: sudo firewall-cmd --list-all
 
@@ -28,7 +28,7 @@
     port: '{{ item }}'
     permanent: true
     state: disabled
-  loop: '{{ firewalld_node_ports }}'
+  loop: '{{ os__firewalld_node_ports }}'
   when: inventory_hostname in groups['nodes']
 
 - name: Reload firewalld
