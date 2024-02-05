@@ -1,0 +1,18 @@
+#!/usr/bin/env ansible-playbook
+
+# Example usage: ansible-playbook readme_generate.yml
+---
+- name: Generate README document for roles
+  hosts: localhost
+
+  vars:
+    roles_list:
+      - os
+      - sametime_docker
+
+  tasks:
+    - name: Generate README file for a role
+      ansible.builtin.include_tasks: readme_generate_task.yml
+      loop: '{{ roles_list }}'
+      loop_control:
+        loop_var: role

@@ -1,0 +1,20 @@
+---
+- name: 'Read role description from a meta file - role: {{ role }}'
+  ansible.builtin.include_vars:
+    file: 'roles/{{ role }}/meta/main.yml'
+    name: metadata
+
+- name: 'Read vars definition from a meta file - role: {{ role }}'
+  ansible.builtin.include_vars:
+    file: 'roles/{{ role }}/meta/argument_specs.yml'
+    name: meta_specs
+
+- name: 'Store specs in a variable - role: {{ role }}'
+  ansible.builtin.set_fact:
+    argument_specs: '{{ meta_specs.argument_specs }}'
+
+- name: 'Generate README doc - role: {{ role }}'
+  ansible.builtin.template:
+    src: templates/README.j2
+    dest: 'roles/{{ role }}/README.md'
+    mode: u=rw,g=r,o=r

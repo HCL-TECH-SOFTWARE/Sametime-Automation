@@ -1,0 +1,75 @@
+ANSIBLE ROLE
+------------
+
+# {{ role }}
+{{ metadata.galaxy_info.description }}
+
+
+Role Variables
+--------------
+{% for entrypoint, specs in argument_specs | items -%}
+## {{ entrypoint }}
+
+*{{ specs.short_description }}*
+
+{{ specs.description | join("\n\n") }}
+
+| Variable | Description | Type | Required | Default |
+| -------- | ----------- | ---- | -------- | ------- |
+{% for name, variable in specs.options | items -%}
+{% if variable.type == "list" -%}
+{% set variable_type = "list({})".format(variable.elements) -%}
+{% else -%}
+{% set variable_type = variable.type | default("str") -%}
+{% endif -%}
+{% if variable.description is not string -%}
+{% set variable_description = " ".join(variable.description) | replace("\n", " ") | trim -%}
+{% else -%}
+{% set variable_description = variable.description | replace("\n", " ") | trim -%}
+{% endif -%}
+{% set variable_required = "yes" if variable.required else "no" -%}
+{% if variable.default is defined -%}
+{% set variable_default = variable.default | trim -%}
+{% endif -%}
+| {{ name }} | {{ variable_description }} | {{ variable_type }} | {{ variable_required }} | {{ variable_default | default("none", true) }} |
+{% endfor -%}
+{%- endfor %}
+
+
+Dependencies
+------------
+{% if metadata.dependencies | length > 0 -%}
+{% for dependency in metadata.dependencies %}
+- {{ dependency }}
+{% endfor %}
+{% else %}
+None.
+{%- endif %}
+
+
+Example Playbook
+----------------
+```
+- hosts: all
+  tasks:
+    - name: Importing role: {{ role }}
+      ansible.builtin.import_role:
+        name: {{ role }}
+      vars:
+        {% for name, variable in argument_specs.main.options | items -%}
+        {%- if variable.required -%}
+        {{ name }}: # required, type: {{ variable.type }}
+        {%- endif -%}
+        {% endfor %}
+
+```
+
+
+License
+-------
+{{ metadata.galaxy_info.license }}
+
+
+Author Information
+------------------
+{{ metadata.galaxy_info.author }} @ {{ metadata.galaxy_info.company }}
