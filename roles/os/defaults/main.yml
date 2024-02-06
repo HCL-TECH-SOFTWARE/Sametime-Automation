@@ -1,2 +1,5 @@
-os__disable_firewall: true     # the current version tested only with 'true', which means firewall is disabled
-os__selinux: disabled          # enforcing, permissive, disabled
+os__disable_firewall: true     # Enable/Disable system firewall in OS.
+os__selinux: enforcing         # Options: enforcing, permissive, disabled
+os__set_hostname: false        # true = server hostname will be set using a hostname Linux command.
+os__set_etc_hosts: false       # true = server hostname will be stored in /etc/hosts, resolving to 192.168.0.1.
+os__hostname: ''               # Server hostname; if not specified, ansible_host from Ansible inventory is used.

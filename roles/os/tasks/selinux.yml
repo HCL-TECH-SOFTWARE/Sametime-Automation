@@ -4,9 +4,5 @@
   ansible.posix.selinux:
     state: '{{ os__selinux }}'
     policy: targeted
-  register: selinux_result
-
-- name: Restart OS when needed
-  become: true
-  ansible.builtin.reboot:
-  when: selinux_result.reboot_required
+  notify:
+    - Restart OS

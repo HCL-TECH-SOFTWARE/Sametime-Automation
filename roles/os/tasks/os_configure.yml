@@ -1,17 +1,24 @@
 # configure_os_redhat.yml
 ---
-- name: Set instance hostname
+- name: Get server OS hostname
+  ansible.builtin.set_fact:
+    os__hostname: '{{ os__hostname | default(ansible_host, true) }}'
+  when: os__set_hostname or os__set_etc_hosts
+
+- name: Set server hostname
   become: true
   ansible.builtin.hostname:
-    name: '{{ ansible_host }}'
+    name: '{{ os__hostname }}'
+  when: os__set_hostname
 
 - name: Insert hostname into /etc/hosts file
   become: true
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '{{ ansible_host }}'
-    line: '127.0.0.1 {{ ansible_host }} {{ ansible_host.split(".")[0] }}'
+    regexp: '{{ os__hostname }}'
+    line: '127.0.0.1 {{ os__hostname }} {{ os__hostname.split(".")[0] }}'
     state: present
+  when: os__set_etc_hosts
 
 - name: Update all packages (yum)
   become: true
@@ -28,20 +35,3 @@
   ansible.builtin.package:
     name: '{{ os__packages_to_install }}'
     state: present
-
-# - name: Enable EPEL repository
-#   become: true
-#   package:
-#     name: epel-release
-#     state: latest
-
-# - name: Install python-pip
-#   become: true
-#   package:
-#     name: python-pip
-#     state: latest
-
-# - name: Install pip pexpect
-#   become: true
-#   pip:
-#     name: pexpect

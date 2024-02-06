@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  role_name: os
+  author: Petr Kunc
+  description: Basic Linux OS configuration
+  company: HCLSoftware
+  license: Apache License 2.0
+  min_ansible_version: '2.11'
+
+dependencies: []
