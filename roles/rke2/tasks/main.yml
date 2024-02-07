@@ -1,8 +1,8 @@
 ---
 - name: Deploy RKE2 on Control Plane
   ansible.builtin.include_tasks: rke2_server.yml
-  when: inventory_hostname == groups['control_planes'][0]
+  when: inventory_hostname == groups[rke2__servers_group][0]
 
 - name: Deploy RKE2 on Node
   ansible.builtin.include_tasks: rke2_agent.yml
-  when: inventory_hostname in groups['nodes']
+  when: inventory_hostname in groups[rke2__agents_group]

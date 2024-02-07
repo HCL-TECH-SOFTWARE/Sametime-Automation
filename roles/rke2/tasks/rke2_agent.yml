@@ -1,7 +1,7 @@
 ---
 - name: Read token from vars, when not obtained directly from the Control Plane
   ansible.builtin.set_fact:
-    access_token: '{{ hostvars[groups["control_planes"][0]]["rke2_token_created"] | default(rke2__token) }}'
+    access_token: '{{ hostvars[groups[rke2__servers_group][0]]["rke2_token_created"] | default(rke2__token) }}'
 
 - name: RKE2 token must exist to setup RKE2 Afent node
   ansible.builtin.assert:
@@ -63,7 +63,7 @@
 
 - name: Get RKE2 Server hostname
   vars:
-    server_name: '{{ groups["control_planes"][0] }}'
+    server_name: '{{ groups[rke2__servers_group][0] }}'
   ansible.builtin.set_fact:
     server_hostname: '{{ hostvars[server_name].ansible_host }}'
 
