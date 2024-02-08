@@ -3,3 +3,4 @@ docker__packages:
   - docker-ce-cli
   - containerd.io
   - docker-compose-plugin
+  - docker-buildx-plugin
