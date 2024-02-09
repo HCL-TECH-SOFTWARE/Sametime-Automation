@@ -1,0 +1,22 @@
+---
+- name: Create Ansible user
+  ansible.builtin.user:
+    name: '{{ ansible_user__name }}'
+    password: '{{ ansible_user__password | password_hash("sha512") }}'
+    update_password: on_create
+    shell: /bin/bash
+    append: true
+    groups: wheel
+
+- name: Allow Ansible user to sudo without a password
+  ansible.builtin.lineinfile:
+    path: '/etc/sudoers'
+    state: present
+    regexp: '^{{ ansible_user__name }}'
+    line: '{{ ansible_user__name }} ALL=(ALL) NOPASSWD: ALL'
+
+- name: Copy ssh keys for Ansible user
+  ansible.posix.authorized_key:
+    user: '{{ ansible_user__name }}'
+    key: '{{ lookup("file", ansible_user__keyfile) }}'
+    state: present

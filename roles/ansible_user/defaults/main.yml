@@ -1,0 +1,4 @@
+---
+ansible_user__name: ansible
+ansible_user__password: password
+ansible_user__keyfile: '~/.ssh/id_rsa.pub'

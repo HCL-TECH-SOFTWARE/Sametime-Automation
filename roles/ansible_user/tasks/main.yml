@@ -1,0 +1,4 @@
+# main.yml
+---
+- name: Setup use for remote ssh access
+  ansible.builtin.import_tasks: setup_ansible_user.yml

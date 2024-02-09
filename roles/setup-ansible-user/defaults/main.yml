@@ -1,4 +1,0 @@
-# main.yml
----
-my_ansible_user_name: ansible
-my_ansible_user_password: password
