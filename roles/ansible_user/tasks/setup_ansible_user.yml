@@ -1,4 +1,20 @@
 ---
+- name: Print user info
+  ansible.builtin.pause:
+    prompt: |
+      The script will set ssh access:
+        Server hostname:    {{ inventory_hostname }}
+        User name:          {{ ansible_user__name }}
+        User password:      {{ ansible_user__password }}
+        User SSH keyfile:   {{ ansible_user__keyfile }}
+      Do you agree ( yes / no )?
+  register: delete_prompt
+
+- name: End when user enters "no"
+  ansible.builtin.fail:
+    msg: Ending the script, nothing was modified.
+  when: not (delete_prompt.user_input | bool)
+
 - name: Create Ansible user
   ansible.builtin.user:
     name: '{{ ansible_user__name }}'
@@ -15,8 +31,15 @@
     regexp: '^{{ ansible_user__name }}'
     line: '{{ ansible_user__name }} ALL=(ALL) NOPASSWD: ALL'
 
+- name: 'Check if the SSH key file {{ ansible_user__keyfile }} exists'
+  ansible.builtin.stat:
+    path: '{{ ansible_user__keyfile }}'
+  delegate_to: localhost
+  register: ssh_file_result
+
 - name: Copy ssh keys for Ansible user
   ansible.posix.authorized_key:
     user: '{{ ansible_user__name }}'
     key: '{{ lookup("file", ansible_user__keyfile) }}'
     state: present
+  when: ssh_file_result.stat.exists

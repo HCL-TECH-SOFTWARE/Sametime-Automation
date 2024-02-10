@@ -1,0 +1,32 @@
+---
+argument_specs:
+  main:
+    short_description: Creates Ansible user account
+    description:
+      - 'Creates / updates user account on the remote server.'
+      - 'It set password for the user, allows sudo without password and uploads user SSH keys.'
+      - 'User has to approve the changes with "yes" prompt.'
+    author:
+      - Petr Kunc
+    options:
+      ansible_user__name:
+        type: str
+        required: false
+        default: ansible
+        description:
+          - 'User name for Ansible ssh access.'
+          - 'If the user already exists, it is updated.'
+          - 'If the user does not exist yet, it is created.'
+      ansible_user__password:
+        type: str
+        required: false
+        default: password
+        description:
+          - 'Password for the newly created user.'
+      ansible_user__keyfile:
+        type: str
+        required: false
+        default: '~/.ssh/id_rsa.pub'
+        description:
+          - 'File with the user SSH public key.'
+          - 'It is uploaded to the remote server into ~/.ssh/authorized_keys'
