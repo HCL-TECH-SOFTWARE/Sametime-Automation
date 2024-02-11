@@ -1,0 +1,18 @@
+---
+- name: Variables info - show values imported from group_vars
+  ansible.builtin.import_tasks: vars_get.yml
+  vars:
+    show_vars: group_vars      # Options: defaults, group_vars
+
+- name: Variables info - show default values for each role
+  ansible.builtin.import_tasks: vars_get.yml
+  vars:
+    show_vars: defaults        # Options: defaults, group_vars
+
+- name: 'Print all gathered variables into a file: VARIABLES-{{ inventory_hostname }}.md'
+  ansible.builtin.template:
+    src: vars_info.md.j2
+    dest: 'VARIABLES-{{ inventory_hostname }}.md'
+    mode: u=rw,g=r,o=r
+  delegate_to: localhost
+  run_once: true

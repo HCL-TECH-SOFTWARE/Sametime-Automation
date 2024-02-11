@@ -5,6 +5,7 @@
       INFO FROM INVENTORY:
       - All hosts the play should run: {{ ansible_play_hosts_all | to_yaml }}
       - All hosts the play will acutally run: {{ ansible_play_batch | to_yaml }}
+      - Host is a member of these groups: {{ group_names }}
       - Inventory hostname (hostname from inventory): {{ inventory_hostname }}
       - Host (FQDN or IP from inventory): {{ ansible_host }}
       - Local Ansible user: {{ ansible_user | default(lookup('env', 'USER')) }}
@@ -40,8 +41,3 @@
       - Disk '/' - available: {{ (ansible_mounts | json_query("[?mount=='/'].size_available"))[0] | human_readable }}
 
     verbosity: 1
-
-- name: Print on first in Control Plane group
-  ansible.builtin.debug:
-    msg: 'I am the first server in Control Plane group, I will perform all Kubernetes commands.'
-  when: inventory_hostname == groups['control_planes'][0]

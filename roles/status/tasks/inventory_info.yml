@@ -1,0 +1,16 @@
+---
+- name: Print inventory info
+  ansible.builtin.debug:
+    msg: |
+      - All hosts the play should run:        {{ ansible_play_hosts_all | to_yaml }}
+      - All hosts the play will acutally run: {{ ansible_play_batch | to_yaml }}
+    verbosity: 1
+  delegate_to: localhost
+  run_once: true
+
+- name: Print on first node in a Control Plane group
+  ansible.builtin.debug:
+    msg: 'I am the first server in Control Plane group, I will perform all Kubernetes commands.'
+  when:
+    - groups[status__control_plane_group] is defined
+    - inventory_hostname == groups[status__control_plane_group][0]

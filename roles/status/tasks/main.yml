@@ -1,0 +1,12 @@
+---
+- name: Inventory and groups info
+  ansible.builtin.import_tasks: inventory_info.yml
+  when: '(status__inventory_switch in status__action) or (status__inventory_switch == status__action)'
+
+- name: Server info
+  ansible.builtin.import_tasks: server_info.yml
+  when: '(status__server_switch in status__action) or (status__server_switch == status__action)'
+
+- name: Vars info
+  ansible.builtin.import_tasks: vars_info.yml
+  when: '(status__vars_switch in status__action) or (status__vars_switch == status__action)'

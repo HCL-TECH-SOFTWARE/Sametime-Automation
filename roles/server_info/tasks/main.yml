@@ -1,6 +1,0 @@
----
-- name: Inventory info
-  ansible.builtin.import_tasks: hosts_info.yml
-
-- name: Server info
-  ansible.builtin.import_tasks: server_info.yml

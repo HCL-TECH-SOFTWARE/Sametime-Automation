@@ -1,0 +1,51 @@
+---
+- name: Extract role name from a role directory
+  ansible.builtin.set_fact:
+    role: '{{ role_dir | basename }}'
+
+- name: Reset variables list
+  ansible.builtin.set_fact:
+    variables: {}
+    role_vars: []
+
+- name: Set switch
+  ansible.builtin.set_fact:
+    defaults: '{{ ((show_vars is defined) and (show_vars == "defaults")) | ternary(true, false) }}'
+
+- name: Check if the file '{{ role_dir }}/defaults/main.yml' exists
+  ansible.builtin.stat:
+    path: '{{ role_dir }}/defaults/main.yml'
+  delegate_to: localhost
+  register: default_file_result
+
+- name: Import defaults for the role from '{{ role_dir }}/defaults/main.yml'
+  ansible.builtin.include_vars: '{{ role_dir }}/defaults/main.yml'
+  when:
+    - defaults
+    - default_file_result.stat.exists
+
+- name: Get variable names
+  vars:
+    role_string: '^{{ role }}__'
+  ansible.builtin.set_fact:
+    vars_string: '{{ lookup("ansible.builtin.varnames", role_string) }}'
+
+- name: Convert variable names to a list
+  ansible.builtin.set_fact:
+    role_vars: '{{ vars_string | split(",") }}'
+  when: vars_string | length > 0
+
+- name: Set a key name ('default' or 'group_vars')
+  ansible.builtin.set_fact:
+    key_name: '{{ defaults | ternary("default", "group_vars") }}'
+
+- name: Pair variable names with variable values
+  ansible.builtin.set_fact:
+    variables: '{{ variables | default({}) | combine({variable: {key_name: vars[variable]}}) }}'
+  loop: '{{ role_vars | default([]) }}'
+  loop_control:
+    loop_var: variable
+
+- name: Store variables (names and values) for the role
+  ansible.builtin.set_fact:
+    role_variables: '{{ role_variables | default({}) | combine({role: variables}, recursive=true) }}'

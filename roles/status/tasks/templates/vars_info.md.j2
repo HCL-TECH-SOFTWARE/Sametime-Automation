@@ -1,0 +1,17 @@
+# VARIABLES FOR SERVER {{ inventory_hostname }}
+
+List of variables used in each Ansible role. \
+Each variable has **default** and **role_vars** value.
+- The **default** value is taken from the `defaults/main.yml` file in the role directory.
+- The **role_vars** value is taken from `group_vars` directory, that matches the server.
+
+{% for role, values in role_variables | items -%}
+## Role: {{ role }}
+
+| Variable | default | group_vars |
+| -------- | ------- | ---------- |
+{% for var_name, var_value in values | items -%}
+| {{ var_name }} | {{ var_value.default | default('') }} | {{ var_value.group_vars | default('') }} |
+{% endfor -%}
+
+{% endfor -%}

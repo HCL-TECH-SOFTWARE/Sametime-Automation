@@ -1,0 +1,18 @@
+---
+- name: Get list of roles
+  ansible.builtin.find:
+    paths: roles
+    recurse: false
+    file_type: directory
+  delegate_to: localhost
+  register: roles_dirs
+
+- name: Store role directories in a list
+  ansible.builtin.set_fact:
+    roles_list: '{{ roles_dirs.files | map(attribute="path") | list | sort }}'
+
+- name: Get all variables for a given role
+  ansible.builtin.include_tasks: vars_get_tasks.yml
+  loop: '{{ roles_list }}'
+  loop_control:
+    loop_var: role_dir
