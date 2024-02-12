@@ -1,0 +1,3 @@
+---
+- name: Install MongoDB on Docker
+  ansible.builtin.import_tasks: mongodb_docker.yml

@@ -1,0 +1,38 @@
+---
+argument_specs:
+  main:
+    short_description: MongoDB installation
+    description:
+      - 'Install MongoDB for usage with HCL Sametime.'
+      - 'Provides single node installation, for demo or test purposes.'
+      - 'Focuses on simplicity.'
+    author:
+      - Petr Kunc
+    options:
+      mongodb__install:
+        type: str
+        required: false
+        default: /local/install/mongo
+        description:
+          - 'Location of MongoDB install files.'
+      mongodb__data:
+        type: str
+        required: false
+        default: /local/mongo/data/db
+        description:
+          - 'Location of MongoDB data files.'
+          - 'Databases will be stored in this directory.'
+      mongodb__container:
+        type: str
+        required: false
+        default: mongo
+        description:
+          - 'Name of the MongoDB container.'
+      mongodb__sametime_network:
+        type: str
+        required: false
+        default: sametime.test
+        description:
+          - 'Name of the Docker network.'
+          - 'Should be the same as the network used by Sametime containers.'
+          - 'Parameter sametime_docker__mongodb_in_local_container=true requires that MongoDB and Sametime use the same Docker network.'

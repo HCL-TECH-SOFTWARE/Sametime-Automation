@@ -1,0 +1,4 @@
+mongodb__install: /local/install/mongo
+mongodb__data: /local/mongo/data/db
+mongodb__container: mongo
+mongodb__sametime_network: sametime.test

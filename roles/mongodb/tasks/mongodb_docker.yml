@@ -1,0 +1,77 @@
+---
+- name: Check if MongoDB data directory exists
+  ansible.builtin.stat:
+    path: '{{ mongodb__data }}'
+  register: mongodb_directory_result
+
+- name: Create a directory to store MongoDB data files
+  become: true
+  ansible.builtin.file:
+    path: '{{ mongodb__data }}'
+    state: directory
+    owner: '{{ ansible_effective_user_id }}'
+    group: '{{ ansible_effective_group_id }}'
+    mode: '0755'
+  when: not mongodb_directory_result.stat.exists
+
+- name: Create a directory to store Mongo install files
+  become: true
+  ansible.builtin.file:
+    path: '{{ mongodb__install }}'
+    state: directory
+    owner: '{{ ansible_effective_user_id }}'
+    group: '{{ ansible_effective_group_id }}'
+    mode: '0755'
+
+- name: Copy and customize MongoDB docker compose file
+  ansible.builtin.template:
+    src: docker-compose.j2
+    dest: '{{ mongodb__install }}/docker-compose.yml'
+    mode: u=rw,g=r,o=r
+
+- name: Create a Docker network
+  community.docker.docker_network:
+    name: '{{ mongodb__sametime_network }}'
+    state: present
+
+- name: Start MongoDB container
+  become: true
+  ansible.builtin.shell:
+    cmd: "docker compose -f docker-compose.yml up -d"
+    chdir: '{{ mongodb__install }}'
+  register: mongodb_start_result
+  changed_when:
+    - mongodb_start_result.changed
+    - mongodb_start_result.rc == 0
+
+- name: Initialize MongoDB - replica set
+  vars:
+    command: |
+      mongosh --quiet --eval "rs.initiate({
+        _id: 'rs0',
+        members: [
+          {_id: 0, host: 'mongo'}
+        ]
+      })"
+  community.docker.docker_container_exec:
+    container: '{{ mongodb__container }}'
+    command: '{{ command }}'
+  register: mongodb_init_result
+  failed_when:
+    - mongodb_init_result.rc != 0
+    - '"already initialized" not in mongodb_init_result.stderr'
+  changed_when:
+    - mongodb_init_result.rc == 0
+    - '"already initialized" not in mongodb_init_result.stderr'
+
+- name: Print info about initialized MongoDB
+  vars:
+    command: |
+      mongosh --quiet --eval "rs.status()"
+  community.docker.docker_container_exec:
+    container: '{{ mongodb__container }}'
+    command: '{{ command }}'
+  register: mongodb_init_info_result
+  changed_when:
+    - mongodb_init_info_result.rc == 0
+    - mongodb_init_info_result.failed != false

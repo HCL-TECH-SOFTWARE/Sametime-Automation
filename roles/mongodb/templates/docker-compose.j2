@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:6
+    container_name: {{ mongodb__container }}
+    command: --replSet rs0 --bind_ip localhost,{{ mongodb__container }}
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - {{ mongodb__data }}:/data/db
+    networks:
+      - sametime-network
+
+networks:
+  sametime-network:
+    name: {{ mongodb__sametime_network }}
+    external: true
+    driver: bridge
