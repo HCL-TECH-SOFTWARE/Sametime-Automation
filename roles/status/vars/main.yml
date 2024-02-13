@@ -1,3 +1,4 @@
 status__inventory_switch: inventory
 status__server_switch: server
 status__vars_switch: vars
+status__readme_switch: readme

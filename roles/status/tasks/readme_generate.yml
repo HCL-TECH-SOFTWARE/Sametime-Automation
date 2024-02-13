@@ -1,0 +1,11 @@
+---
+- name: Generate README file for a role
+  vars:
+    roles_list:
+      - os
+      - mongodb
+      - sametime_docker
+  ansible.builtin.include_tasks: readme_generate_tasks.yml
+  loop: '{{ roles_list }}'
+  loop_control:
+    loop_var: role

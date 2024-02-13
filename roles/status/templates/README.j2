@@ -52,7 +52,7 @@ Example Playbook
 ```
 - hosts: all
   tasks:
-    - name: Importing role: {{ role }}
+    - name: Importing role - {{ role }}
       ansible.builtin.import_role:
         name: {{ role }}
       vars:

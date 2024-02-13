@@ -10,3 +10,7 @@
 - name: Vars info
   ansible.builtin.import_tasks: vars_info.yml
   when: '(status__vars_switch in status__action) or (status__vars_switch == status__action)'
+
+- name: Generate README for roles
+  ansible.builtin.import_tasks: readme_generate.yml
+  when: '(status__readme_switch in status__action) or (status__readme_switch == status__action)'
