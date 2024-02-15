@@ -8,9 +8,13 @@
   delegate_to: localhost
   run_once: true
 
+- name: Get name of the first member in the actual control plane group
+  ansible.builtin.set_fact:
+    actual_cp: '{{ ansible_play_hosts_all | intersect((groups[status__control_plane_group] | default({}))) }}'
+
 - name: Print on first node in a Control Plane group
   ansible.builtin.debug:
     msg: 'I am the first server in Control Plane group, I will perform all Kubernetes commands.'
   when:
-    - groups[status__control_plane_group] is defined
-    - inventory_hostname == groups[status__control_plane_group][0]
+    - actual_cp | length > 0
+    - inventory_hostname == actual_cp[0]

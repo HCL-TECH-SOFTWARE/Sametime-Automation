@@ -34,7 +34,7 @@ Example Playbook
 ```
 - hosts: all
   tasks:
-    - name: Importing role: mongodb
+    - name: Importing role - mongodb
       ansible.builtin.import_role:
         name: mongodb
       vars:
