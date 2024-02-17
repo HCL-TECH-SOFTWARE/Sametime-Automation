@@ -1,0 +1,38 @@
+sametime_docker__software_dir: ~/software           # Path to the local directory with SW installers
+sametime_docker__install: /local/install/sametime
+
+# User accounts in MongoDB
+sametime_docker__sametime_user: sametimeUser
+sametime_docker__sametime_user_password: sametime
+sametime_docker__sametime_cluster_admin: sametimeClusterAdmin
+sametime_docker__sametime_cluster_admin_password: sametime
+
+sametime_docker__meeting_hostname: ''
+sametime_docker__chat_hostname: ''
+
+sametime_docker__mongodb_in_local_container: true
+sametime_docker__mongodb_container: mongo
+sametime_docker__mongodb_hostname: ''
+
+sametime_docker__prometheus_data: /local/prometheus
+
+sametime_docker__configure_ltpa: Y
+sametime_docker__ltpa_keys: ltpa.keys
+sametime_docker__ltpa_password: WebAS
+
+sametime_docker__lets_encrypt_staging: true
+sametime_docker__lets_encrypt_email: user@example.com
+
+sametime_docker__verse_integration: false
+
+# LDAP server parameters
+sametime_docker__ldap_hostname: ''
+sametime_docker__ldap_port: '389'
+# ldap_user: password
+# ldap_user_password:
+
+sametime_docker__sametime_admin: ''
+
+sametime_docker__configure_monitoring: Y
+sametime_docker__grafana_admin: admin
+sametime_docker__grafana_admin_password: password

@@ -1,0 +1,58 @@
+---
+- name: Install pip
+  become: true
+  ansible.builtin.package:
+    name: python3-pip
+    state: present
+
+- name: Install pexpect Python package
+  become: true
+  ansible.builtin.pip:
+    name: pexpect
+
+- name: Copy static config files
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: '{{ sametime_docker__install }}/{{ item }}'
+    force: false
+    mode: u=rw,g=r,o=r
+  loop:
+    - ltpa.keys
+
+- name: Create a directory to store Prometheus data files
+  become: true
+  ansible.builtin.file:
+    path: '{{ sametime_docker__prometheus_data }}'
+    state: directory
+    owner: '{{ ansible_effective_user_id }}'
+    group: '{{ ansible_effective_group_id }}'
+    mode: '0755'
+
+- name: Copy and customize config files
+  ansible.builtin.template:
+    src: '{{ item }}'
+    dest: '{{ sametime_docker__install }}/{{ item }}'
+    mode: u=rw,g=r,o=r
+  loop:
+    - docker-compose-monitoring.yml
+
+- name: Set MongoDB hostname to container name when it runs in a local container
+  ansible.builtin.set_fact:
+    mongodb_hostname: '{{ (sametime_docker__mongodb_in_local_container) | ternary(sametime_docker__mongodb_container, sametime_docker__mongodb_hostname) }}'
+
+- name: Convert ltpa.keys path to the full path, if not already set a the full path
+  vars:
+    ltpa_keys: sametime_docker__ltpa_keys
+  ansible.builtin.set_fact:
+    ltpa_keys: '{{ (ltpa_keys.startswith("/")) | ternary(ltpa_keys, sametime_docker__install + "/" + ltpa_keys) }}'
+
+- name: Copy and extract Sametime install files
+  ansible.builtin.unarchive:
+    src: '{{ sametime_docker__software_dir }}/Sametime_12.0.2.zip'
+    dest: '{{ sametime_docker__install }}'
+  when: upload_sw_installers
+
+- name: Update Sametime docker-compose.yml file to use external network
+  ansible.builtin.lineinfile:
+    path: '{{ sametime_docker__install }}/docker-compose.yml'
+    line: '      external: true'

@@ -1,0 +1,50 @@
+---
+- name: Install Sametime
+  become: true
+  environment:
+    ENABLE_DARK_LAUNCH_MONITORING: "true"
+  ansible.builtin.expect:
+    chdir: '{{ sametime_docker__install }}'
+    command: '/bin/sh -c  "./install.sh"'
+    responses:
+      Both podman and docker are present. Use podman: 'N'
+      Enter fully qualified Sametime server Name: '{{ sametime_docker__meeting_hostname }}'
+      Enter server domain name: '{{ (sametime_docker__meeting_hostname | split(".", 1))[1] }}'
+      Enter Mongo host: '{{ sametime_docker__mongodb_hostname }}'
+      Enter Mongo port: '27017'
+      Enter Mongo admin user name: '{{ sametime_docker__sametime_user }}'
+      Enter Mongo admin user password: '{{ sametime_docker__sametime_user_password }}'
+      Mongo connection URL is computed: 'N'
+      What type of LDAP server are you using: 'Domino'
+      Enter LDAP server host name: '{{ sametime_docker__ldap_hostname }}'
+      Use TLS to access LDAP: 'N'
+      Enter LDAP server port: '{{ sametime_docker__ldap_port }}'
+      Enter the Base64 encoded JWT_SECRET: ''
+      Configure LTPA: '{{ sametime_docker__configure_ltpa }}'
+      Enter the full path to the LTPA keys file: '{{ sametime_docker__ltpa_keys }}'
+      Enter password to use: '{{ sametime_docker__ltpa_password }}'
+      Confirm LTPA keys password: '{{ sametime_docker__ltpa_password }}'
+      Enter administrator email address: '{{ sametime_docker__sametime_admin }}'
+      Do you want to enable monitoring: '{{ sametime_docker__configure_monitoring }}'
+      Enter grafana admin user: '{{ sametime_docker__grafana_admin }}'
+      Enter grafana admin password: '{{ sametime_docker__grafana_admin_password }}'
+      Confirm grafana admin password: '{{ sametime_docker__grafana_admin_password }}'
+    timeout: 300
+    creates: '{{ sametime_docker__install }}/custom.env'
+  register: install_result
+  changed_when:
+    - install_result.changed
+  failed_when:
+    - install_result.rc != 0
+
+- name: Start Monitoring containers
+  ansible.builtin.shell:
+    cmd: "docker compose -f docker-compose-monitoring.yml up -d"
+    chdir: '{{ sametime_docker__install }}'
+  register: monitoring_result
+  changed_when:
+    - monitoring_result.changed
+    - monitoring_result.rc == 0
+  failed_when:
+    - monitoring_result.rc != 0
+  when: sametime_docker__configure_monitoring == 'Y'

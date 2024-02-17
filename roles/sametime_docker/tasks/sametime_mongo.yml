@@ -1,0 +1,98 @@
+---
+- name: Create Sametime user in MongoDB
+  vars:
+    command: |
+      mongosh --quiet
+        --eval "use admin"
+        --eval "db.createUser({
+          user: '{{ sametime_docker__sametime_user }}',
+          pwd: '{{ sametime_docker__sametime_user_password }}',
+          roles: [
+            { role: 'readWrite', db: 'chatlogging' },
+            { role: 'dbAdmin', db: 'chatlogging' },
+            { role: 'readWrite', db: 'mobileOffline' },
+            { role: 'dbAdmin', db: 'mobileOffline' },
+            { role: 'readWrite', db: 'meeting' },
+            { role: 'dbAdmin', db: 'meeting' },
+            { role: 'readWrite', db: 'privacy' },
+            { role: 'dbAdmin', db: 'privacy' },
+            { role: 'readWrite', db: 'userinfo' },
+            { role: 'dbAdmin', db: 'userinfo' },
+            { role: 'userAdminAnyDatabase', db: 'admin' }
+          ]
+        })"
+  community.docker.docker_container_exec:
+    container: '{{ sametime_docker__mongodb_container }}'
+    command: '{{ command }}'
+  register: mongodb_user_result
+  failed_when:
+    - mongodb_user_result.rc != 0
+    - '"already exists" not in mongodb_user_result.stderr'
+  changed_when:
+    - mongodb_user_result.rc != 0
+    - '"already exists" not in mongodb_user_result.stderr'
+
+- name: Create Sametime Cluster Admin user in MongoDB
+  vars:
+    command: |
+      mongosh --quiet
+        --eval "use admin"
+        --eval "db.createUser({
+          user: '{{ sametime_docker__sametime_cluster_admin }}',
+          pwd: '{{ sametime_docker__sametime_cluster_admin_password }}',
+          roles: [ { role : 'clusterAdmin', db : 'admin' } ]
+        })"
+  community.docker.docker_container_exec:
+    container: '{{ sametime_docker__mongodb_container }}'
+    command: '{{ command }}'
+  register: mongodb_admin_result
+  failed_when:
+    - mongodb_admin_result.rc != 0
+    - '"already exists" not in mongodb_admin_result.stderr'
+  changed_when:
+    - mongodb_admin_result.rc != 0
+    - '"already exists" not in mongodb_admin_result.stderr'
+
+- name: Print info about Sametime users
+  vars:
+    command: |
+      mongosh --quiet --eval "use admin" --eval "db.getUsers()"
+  community.docker.docker_container_exec:
+    container: '{{ sametime_docker__mongodb_container }}'
+    command: '{{ command }}'
+  register: mongodb_sametime_user_info_result
+  changed_when:
+    - mongodb_sametime_user_info_result.rc == 0
+    - mongodb_sametime_user_info_result.failed != false
+
+- name: Create collections in MongoDB
+  vars:
+    command: |
+      mongosh --quiet
+        --eval "use chatlogging"
+        --eval "db.EVENTS.insertOne({_id : 'dummy'})"
+        --eval "db.SESSIONS.insertOne({_id : 'dummy'})"
+  community.docker.docker_container_exec:
+    container: '{{ sametime_docker__mongodb_container }}'
+    command: '{{ command }}'
+  register: mongodb_collections_result
+  failed_when:
+    - mongodb_collections_result.rc != 0
+    - '"duplicate key" not in mongodb_collections_result.stderr'
+  changed_when:
+    - mongodb_collections_result.rc != 0
+    - '"duplicate key" not in mongodb_collections_result.stderr'
+
+- name: Print info about Collections
+  vars:
+    command: |
+      mongosh --quiet
+        --eval "use chatlogging"
+        --eval "show collections"
+  community.docker.docker_container_exec:
+    container: '{{ sametime_docker__mongodb_container }}'
+    command: '{{ command }}'
+  register: mongodb_collections_info_result
+  changed_when:
+    - mongodb_collections_info_result.rc == 0
+    - mongodb_collections_info_result.failed != false
