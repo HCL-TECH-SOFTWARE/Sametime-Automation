@@ -20,7 +20,7 @@
       Use TLS to access LDAP: 'N'
       Enter LDAP server port: '{{ sametime_docker__ldap_port }}'
       Enter the Base64 encoded JWT_SECRET: ''
-      Configure LTPA: '{{ sametime_docker__configure_ltpa }}'
+      Configure LTPA: '{{ sametime_docker__ltpa_configure }}'
       Enter the full path to the LTPA keys file: '{{ sametime_docker__ltpa_keys }}'
       Enter password to use: '{{ sametime_docker__ltpa_password }}'
       Confirm LTPA keys password: '{{ sametime_docker__ltpa_password }}'

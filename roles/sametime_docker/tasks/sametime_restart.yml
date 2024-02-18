@@ -1,0 +1,8 @@
+---
+- name: Stop and remove Sametime containers
+  ansible.builtin.import_tasks:
+    file: sametime_down.yml
+
+- name: Start new Sametime containers
+  ansible.builtin.import_tasks:
+    file: sametime_up.yml

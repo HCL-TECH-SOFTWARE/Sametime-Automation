@@ -1,0 +1,9 @@
+---
+- name: Stop and remove Sametime containers
+  ansible.builtin.shell:
+    cmd: "docker compose down"
+    chdir: '{{ sametime_docker__install }}'
+  register: sametime_down_result
+  changed_when:
+    - sametime_down_result.changed
+    - sametime_down_result.rc == 0

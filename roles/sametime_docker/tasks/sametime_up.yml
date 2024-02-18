@@ -1,0 +1,9 @@
+---
+- name: Start new Sametime containers
+  ansible.builtin.shell:
+    cmd: "docker compose up -d"
+    chdir: '{{ sametime_docker__install }}'
+  register: mongodb_up_result
+  changed_when:
+    - mongodb_up_result.changed
+    - mongodb_up_result.rc == 0
